@@ -43,7 +43,7 @@ dotnet build -c Release
 
 ## Baixar versão para Windows
 
-A cada atualização enviada para a branch `main), o GitHub Actions compila e publica um pacote independente para Windows x64.
+A cada atualização enviada para a branch `main`, o GitHub Actions compila e publica um pacote independente para Windows x64.
 
 1. Abra a aba **Actions** do repositório.
 2. Selecione a execução mais recente com resultado verde.
@@ -90,7 +90,7 @@ GameLibrary/
 
 ## Limitações conhecidas
 
-- O contador acompanha o processo executável iniciado pelo launcher. Alguns jogos iniciam um processo-filho e encerram o processo inicial; nesses casos, o tempo pode não refletir a sessão completa.
+- O contador acompanha o processo iniciado e tenta identificar processos-filhos do jogo quando launchers intermediários são encerrados. Jogos que delegam a execução a serviços externos ou processos sem relação direta podem não ser monitorados até o fim.
 - A busca de capas depende de internet e de uma chave SteamGridDB válida.
 - Não há sincronização em nuvem: os dados permanecem no computador.
 - Esta é uma versão inicial; não é um produto final nem um instalador.
