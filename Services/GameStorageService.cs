@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Text.Json;
 using GameLibrary.Models;
 
@@ -17,23 +21,40 @@ public sealed class GameStorageService
         Directory.CreateDirectory(CoversFolder);
     }
 
-    public async Task<List<Game>> LoadAsync()
+    public async Task<List<Game>> LoadAsync(CancellationToken cancellationToken = default)
     {
-        if (!File.Exists(DatabasePath)) return new();
+        if (!File.Exists(DatabasePath)) return new List<Game>();
         try
         {
-            await using var stream = File.OpenRead(DatabasePath);
-            return await JsonSerializer.DeserializeAsync<List<Game>>(stream) ?? new();
+            await using var stream = new FileStream(DatabasePath, FileMode.Open, FileAccess.Read, FileShare.Read,
+                81920, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            return await JsonSerializer.DeserializeAsync<List<Game>>(stream, cancellationToken: cancellationToken)
+                ?? new List<Game>();
         }
-        catch (JsonException) { return new(); }
-        catch (IOException) { return new(); }
+        catch (JsonException ex)
+        {
+            throw new InvalidDataException("O arquivo da biblioteca contém dados inválidos. O original foi preservado.", ex);
+        }
     }
 
-    public async Task SaveAsync(IEnumerable<Game> games)
+    public async Task SaveAsync(IEnumerable<Game> games, CancellationToken cancellationToken = default)
     {
+        Directory.CreateDirectory(_folder);
         var temp = DatabasePath + ".tmp";
-        await using (var stream = File.Create(temp))
-            await JsonSerializer.SerializeAsync(stream, games, new JsonSerializerOptions { WriteIndented = true });
-        File.Move(temp, DatabasePath, true);
+        try
+        {
+            await using (var stream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None,
+                81920, FileOptions.Asynchronous | FileOptions.WriteThrough))
+            {
+                await JsonSerializer.SerializeAsync(stream, games,
+                    new JsonSerializerOptions { WriteIndented = true }, cancellationToken);
+                await stream.FlushAsync(cancellationToken);
+            }
+            File.Move(temp, DatabasePath, true);
+        }
+        finally
+        {
+            try { if (File.Exists(temp)) File.Delete(temp); } catch (IOException) { }
+        }
     }
 }
