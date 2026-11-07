@@ -7,13 +7,19 @@
   <Style TargetType="Button">
    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
    <Setter Property="Cursor" Value="Hand"/>
-   <Style.Triggers><Trigger Property="IsKeyboardFocused" Value="True">
-    <Setter Property="BorderBrush" Value="#A78BFA"/><Setter Property="BorderThickness" Value="2"/>
-   </Trigger></Style.Triggers>
+   <Style.Triggers>
+    <Trigger Property="IsKeyboardFocused" Value="True">
+     <Setter Property="BorderBrush" Value="#C4B5FD"/>
+     <Setter Property="BorderThickness" Value="3"/>
+     <Setter Property="Effect">
+      <Setter.Value><DropShadowEffect Color="#A78BFA" BlurRadius="18" ShadowDepth="0" Opacity="0.95"/></Setter.Value>
+     </Setter>
+    </Trigger>
+   </Style.Triggers>
   </Style>
   <DataTemplate x:Key="GameCard">
-   <Border Width="174" Margin="0,0,14,8" Background="#171B24" CornerRadius="12"
-           BorderBrush="#292F3B" BorderThickness="1" GotKeyboardFocus="GameCard_GotKeyboardFocus">
+   <Border Width="174" Margin="0,0,14,8" CornerRadius="12"
+           GotKeyboardFocus="GameCard_GotKeyboardFocus">
     <StackPanel>
      <Border Height="190" Background="#252B38" CornerRadius="11,11,0,0" ClipToBounds="True">
       <Grid>
