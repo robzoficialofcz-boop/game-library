@@ -33,6 +33,10 @@ public partial class MainWindow : Window
     private Stopwatch? _session;
     private TimeSpan _savedElapsed;
     private bool _isClosing;
+    private bool _isFullscreen;
+    private WindowStyle _previousWindowStyle;
+    private ResizeMode _previousResizeMode;
+    private WindowState _previousWindowState;
 
     public MainWindow()
     {
@@ -43,6 +47,49 @@ public partial class MainWindow : Window
         _timer.Tick += OnTimerTick;
         _controllerTimer.Tick += OnControllerTimerTick;
         _controllerTimer.Start();
+    }
+
+    private void ToggleFullscreen_Click(object sender, RoutedEventArgs e) => SetFullscreen(!_isFullscreen);
+
+    private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.F11)
+        {
+            SetFullscreen(!_isFullscreen);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape && _isFullscreen)
+        {
+            SetFullscreen(false);
+            e.Handled = true;
+        }
+    }
+
+    private void SetFullscreen(bool enabled)
+    {
+        if (enabled == _isFullscreen) return;
+
+        if (enabled)
+        {
+            _previousWindowStyle = WindowStyle;
+            _previousResizeMode = ResizeMode;
+            _previousWindowState = WindowState;
+            WindowState = WindowState.Normal;
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+            WindowState = WindowState.Maximized;
+            FullscreenButton.Content = "SAIR DA TELA CHEIA";
+        }
+        else
+        {
+            WindowState = WindowState.Normal;
+            WindowStyle = _previousWindowStyle;
+            ResizeMode = _previousResizeMode;
+            WindowState = _previousWindowState;
+            FullscreenButton.Content = "TELA CHEIA";
+        }
+
+        _isFullscreen = enabled;
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
