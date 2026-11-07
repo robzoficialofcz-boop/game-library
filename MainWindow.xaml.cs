@@ -161,6 +161,7 @@ public partial class MainWindow : Window
                 return;
             }
             game.CoverPath = path;
+            if (_selectedGame == game) UpdateFeaturedGame(game);
             await PersistSafelyAsync();
         }
         catch (Exception ex)
@@ -201,6 +202,7 @@ public partial class MainWindow : Window
             }
 
             game.CoverPath = destination;
+            if (_selectedGame == game) UpdateFeaturedGame(game);
             await PersistSafelyAsync();
             StatusText.Text = $"Capa atualizada: {game.Name}";
         }
