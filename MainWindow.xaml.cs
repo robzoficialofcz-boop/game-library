@@ -290,7 +290,7 @@ public partial class MainWindow : Window
 
         var candidates = GetFocusableElements(this)
             .Where(element => element != current && element.IsVisible && element.IsEnabled &&
-                              element.Focusable && element.IsTabStop)
+                              element.Focusable && KeyboardNavigation.GetIsTabStop(element))
             .Select(element => new { Element = element, Bounds = GetBounds(element) })
             .Where(item => item.Bounds.HasValue)
             .ToList();
@@ -337,7 +337,7 @@ public partial class MainWindow : Window
         for (var i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
         {
             var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
-            if (child is FrameworkElement element && element.Focusable && element.IsTabStop)
+            if (child is FrameworkElement element && element.Focusable && KeyboardNavigation.GetIsTabStop(element))
                 yield return element;
             foreach (var descendant in GetFocusableElements(child))
                 yield return descendant;
