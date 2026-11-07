@@ -11,6 +11,38 @@
     <StackPanel>
      <Grid Height="210" Background="#252B38">
       <Image Source="{Binding CoverPath}" Stretch="UniformToFill"/>
+      <Border Visibility="Collapsed" Opacity="0" HorizontalAlignment="Center" VerticalAlignment="Top"
+              Margin="0,10,0,0" Background="#EDE9FE" CornerRadius="13" Padding="11,7"
+              Panel.ZIndex="5" IsHitTestVisible="False">
+       <Border.Style>
+        <Style TargetType="Border">
+         <Setter Property="Visibility" Value="Collapsed"/>
+         <Setter Property="Opacity" Value="0"/>
+         <Setter Property="RenderTransform"><Setter.Value><TranslateTransform Y="-9"/></Setter.Value></Setter>
+         <Style.Triggers>
+          <DataTrigger Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+           <Setter Property="Visibility" Value="Visible"/>
+           <DataTrigger.EnterActions>
+            <BeginStoryboard>
+             <Storyboard>
+              <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.22"/>
+              <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Y" From="-9" To="0" Duration="0:0:0.22"/>
+             </Storyboard>
+            </BeginStoryboard>
+           </DataTrigger.EnterActions>
+          </DataTrigger>
+         </Style.Triggers>
+        </Style>
+       </Border.Style>
+       <StackPanel Orientation="Horizontal">
+        <TextBlock Text="▶" Foreground="#6D28D9" FontSize="10" VerticalAlignment="Center" Margin="0,0,6,0"/>
+        <TextBlock Text="{Binding Name}" Foreground="#24133F" FontSize="10" FontWeight="Bold"
+                   MaxWidth="125" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+        <Border Background="#D8CCFA" CornerRadius="7" Padding="5,2" Margin="7,0,0,0">
+         <TextBlock Text="A • JOGAR" Foreground="#5B21B6" FontSize="8" FontWeight="Bold"/>
+        </Border>
+       </StackPanel>
+      </Border>
       <TextBlock Text="SEM CAPA" Foreground="#7D8698" FontSize="10"
                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
      </Grid>
