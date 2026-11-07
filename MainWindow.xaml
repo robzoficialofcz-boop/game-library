@@ -19,8 +19,7 @@
   </Style>
   <DataTemplate x:Key="GameCard">
    <Border Width="174" Margin="0,0,14,8" CornerRadius="12"
-           RenderTransformOrigin="0.5,0.5" GotKeyboardFocus="GameCard_GotKeyboardFocus">
-    <Border.RenderTransform><ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
+           GotKeyboardFocus="GameCard_GotKeyboardFocus">
     <Border.Style>
      <Style TargetType="Border">
       <Setter Property="BorderBrush" Value="#292F3B"/>
@@ -28,22 +27,6 @@
       <Setter Property="Background" Value="#171B24"/>
       <Style.Triggers>
        <Trigger Property="IsKeyboardFocusWithin" Value="True">
-        <Trigger.EnterActions>
-         <BeginStoryboard>
-          <Storyboard>
-           <DoubleAnimation Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleX" To="1.045" Duration="0:0:0.16"/>
-           <DoubleAnimation Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleY" To="1.045" Duration="0:0:0.16"/>
-          </Storyboard>
-         </BeginStoryboard>
-        </Trigger.EnterActions>
-        <Trigger.ExitActions>
-         <BeginStoryboard>
-          <Storyboard>
-           <DoubleAnimation Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.14"/>
-           <DoubleAnimation Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.14"/>
-          </Storyboard>
-         </BeginStoryboard>
-        </Trigger.ExitActions>
         <Setter Property="BorderBrush" Value="#FFFFFF"/>
         <Setter Property="BorderThickness" Value="3"/>
         <Setter Property="Background" Value="#242A36"/>
