@@ -15,7 +15,21 @@
    <Setter Property="Background" Value="#202635"/>
    <Setter Property="Foreground" Value="#E7EAF2"/>
    <Setter Property="Padding" Value="12,9"/>
+   <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+   <Setter Property="RenderTransform"><Setter.Value><ScaleTransform ScaleX="1" ScaleY="1"/></Setter.Value></Setter>
    <Style.Triggers>
+    <EventTrigger RoutedEvent="Mouse.MouseEnter">
+     <BeginStoryboard><Storyboard>
+      <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.025" Duration="0:0:0.14"/>
+      <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.025" Duration="0:0:0.14"/>
+     </Storyboard></BeginStoryboard>
+    </EventTrigger>
+    <EventTrigger RoutedEvent="Mouse.MouseLeave">
+     <BeginStoryboard><Storyboard>
+      <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.14"/>
+      <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.14"/>
+     </Storyboard></BeginStoryboard>
+    </EventTrigger>
     <Trigger Property="IsKeyboardFocused" Value="True">
      <Setter Property="BorderBrush" Value="#FFFFFF"/>
      <Setter Property="BorderThickness" Value="2"/>
@@ -52,7 +66,21 @@
       <Setter Property="BorderBrush" Value="#292F3D"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="Background" Value="#151A25"/>
+      <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+      <Setter Property="RenderTransform"><Setter.Value><ScaleTransform ScaleX="1" ScaleY="1"/></Setter.Value></Setter>
       <Style.Triggers>
+       <EventTrigger RoutedEvent="Mouse.MouseEnter">
+        <BeginStoryboard><Storyboard>
+         <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.035" Duration="0:0:0.18"/>
+         <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.035" Duration="0:0:0.18"/>
+        </Storyboard></BeginStoryboard>
+       </EventTrigger>
+       <EventTrigger RoutedEvent="Mouse.MouseLeave">
+        <BeginStoryboard><Storyboard>
+         <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.18"/>
+         <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.18"/>
+        </Storyboard></BeginStoryboard>
+       </EventTrigger>
        <Trigger Property="IsKeyboardFocusWithin" Value="True">
         <Setter Property="BorderBrush" Value="#FFFFFF"/>
         <Setter Property="BorderThickness" Value="2"/>
