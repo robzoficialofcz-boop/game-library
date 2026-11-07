@@ -27,29 +27,37 @@ jobs:
         shell: pwsh
         run: |
           Add-Type -AssemblyName System.Drawing
-          $source = [System.Drawing.Image]::FromFile("$env:GITHUB_WORKSPACE/Assets/GameLibraryLogo.jpg")
+          $bitmap = New-Object System.Drawing.Bitmap(256, 256)
+          $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
           try {
-            $bitmap = New-Object System.Drawing.Bitmap(256, 256)
-            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+            $graphics.Clear([System.Drawing.Color]::FromArgb(13, 15, 20))
+            $purple = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(139, 92, 246))
+            $white = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
+            $dark = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(13, 15, 20))
+            $pen = New-Object System.Drawing.Pen([System.Drawing.Color]::White, 13)
             try {
-              $graphics.Clear([System.Drawing.Color]::Transparent)
-              $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-              $scale = [Math]::Min(256.0 / $source.Width, 256.0 / $source.Height)
-              $width = [int]($source.Width * $scale)
-              $height = [int]($source.Height * $scale)
-              $x = [int]((256 - $width) / 2)
-              $y = [int]((256 - $height) / 2)
-              $graphics.DrawImage($source, $x, $y, $width, $height)
-              $handle = $bitmap.GetHicon()
-              try {
-                $icon = [System.Drawing.Icon]::FromHandle($handle)
-                $stream = [System.IO.File]::Create("$env:GITHUB_WORKSPACE/Assets/GameLibraryLogo.ico")
-                try { $icon.Save($stream) } finally { $stream.Dispose(); $icon.Dispose() }
-              } finally {
-                [void][System.Runtime.InteropServices.Marshal]::DestroyIcon($handle)
-              }
-            } finally { $graphics.Dispose(); $bitmap.Dispose() }
-          } finally { $source.Dispose() }
+              $graphics.FillRoundedRectangle($purple, 18, 18, 220, 220, 48)
+            } catch {
+              $graphics.FillRectangle($purple, 18, 18, 220, 220)
+            }
+            $graphics.FillEllipse($white, 61, 91, 134, 88)
+            $graphics.FillEllipse($dark, 82, 115, 18, 48)
+            $graphics.FillEllipse($dark, 68, 130, 46, 18)
+            $graphics.FillEllipse($purple, 148, 112, 17, 17)
+            $graphics.FillEllipse($purple, 171, 135, 17, 17)
+            $handle = $bitmap.GetHicon()
+            try {
+              $icon = [System.Drawing.Icon]::FromHandle($handle)
+              $stream = [System.IO.File]::Create("$env:GITHUB_WORKSPACE/Assets/GameLibraryLogo.ico")
+              try { $icon.Save($stream) } finally { $stream.Dispose(); $icon.Dispose() }
+            } finally {
+              [void][System.Runtime.InteropServices.Marshal]::DestroyIcon($handle)
+            }
+          } finally {
+            $graphics.Dispose()
+            $bitmap.Dispose()
+          }
 
       - name: Restore
         run: dotnet restore GameLibrary.csproj
