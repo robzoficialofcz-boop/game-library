@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using IOPath = System.IO.Path;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -184,7 +185,7 @@ public partial class MainWindow : Window
 
         var game = new Game
         {
-            Name = Path.GetFileNameWithoutExtension(dialog.FileName),
+            Name = IOPath.GetFileNameWithoutExtension(dialog.FileName),
             ExecutablePath = dialog.FileName
         };
         Games.Add(game);
@@ -232,7 +233,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var extension = Path.GetExtension(dialog.FileName).ToLowerInvariant();
+            var extension = IOPath.GetExtension(dialog.FileName).ToLowerInvariant();
             if (extension is not (".png" or ".jpg" or ".jpeg" or ".webp"))
             {
                 MessageBox.Show(this, "Formato não suportado. Escolha PNG, JPG, JPEG ou WEBP.",
@@ -241,7 +242,7 @@ public partial class MainWindow : Window
             }
 
             Directory.CreateDirectory(_storage.CoversFolder);
-            var destination = Path.Combine(_storage.CoversFolder, $"{game.Id:N}_{Guid.NewGuid():N}{extension}");
+            var destination = IOPath.Combine(_storage.CoversFolder, $"{game.Id:N}_{Guid.NewGuid():N}{extension}");
             await using (var source = new FileStream(dialog.FileName, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, true))
             await using (var target = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, true))
             {
@@ -525,7 +526,7 @@ public partial class MainWindow : Window
             UpdateFeaturedGame(visibleGames.FirstOrDefault());
     }
 
-    private void PlayGame_Click(object sender, RoutedEventArgs e)
+    private async void PlayGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: Game game }) return;
 
@@ -535,7 +536,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_session is not null) _ = FinishSessionAsync();
+        if (_session is not null) await FinishSessionAsync();
 
         try
         {
