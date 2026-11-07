@@ -17,6 +17,7 @@
       <TextBlock Text="{Binding PlaytimeText}" Foreground="#8F98A9" FontSize="9" Margin="0,5,0,12"/>
       <Button Content="JOGAR" Tag="{Binding}" Click="PlayGame_Click" Style="{StaticResource PrimaryButton}"/>
      </StackPanel>
+    </StackPanel>
    </Border>
   </DataTemplate>
  </Window.Resources>
