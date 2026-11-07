@@ -26,6 +26,8 @@ public partial class MainWindow : Window
     private readonly GamepadService _gamepad = new();
     private ushort _previousGamepadButtons;
     private int _previousStickDirection;
+    private int _previousHorizontalDirection;
+    private DateTime _lastNavigationAt = DateTime.MinValue;
     private bool _controllerConnected;
     private readonly SemaphoreSlim _saveLock = new(1, 1);
     private Process? _activeProcess;
@@ -232,40 +234,162 @@ public partial class MainWindow : Window
             _controllerConnected = false;
             _previousGamepadButtons = 0;
             _previousStickDirection = 0;
+            _previousHorizontalDirection = 0;
             return;
         }
 
-        if (!_controllerConnected) ControllerStatusText.Text = "CONTROLE XINPUT: conectado  •  A: selecionar  B: voltar  •  direcional: navegar";
+        if (!_controllerConnected)
+        {
+            ControllerStatusText.Text = "CONTROLE XINPUT: conectado | DIRECIONAL: mover • A: confirmar • B: voltar • START: adicionar • Y: estatísticas • X: tela cheia";
+            FocusFirstGameAction();
+        }
         _controllerConnected = true;
 
-        const ushort dpadMask = 0x000F;
-        const ushort buttonA = 0x1000;
-        const ushort buttonB = 0x2000;
-        var dpad = (ushort)(buttons & dpadMask);
-        var direction = (dpad & 0x0005) != 0 ? -1 : (dpad & 0x000A) != 0 ? 1 :
-            stickY > 16000 || stickX > 16000 ? 1 : stickY < -16000 || stickX < -16000 ? -1 : 0;
-        var dpadPressed = (dpad & ~_previousGamepadButtons) != 0;
-        if (direction != 0 && (_previousStickDirection == 0 || dpadPressed)) NavigateFocus(direction);
-        if ((buttons & buttonA) != 0 && (_previousGamepadButtons & buttonA) == 0) ActivateFocusedControl();
-        if ((buttons & buttonB) != 0 && (_previousGamepadButtons & buttonB) == 0)
+        const ushort dpadUp = 0x0001, dpadDown = 0x0002, dpadLeft = 0x0004, dpadRight = 0x0008;
+        const ushort buttonA = 0x1000, buttonB = 0x2000, buttonX = 0x4000, buttonY = 0x8000;
+        const ushort buttonStart = 0x0010, buttonBack = 0x0020;
+        const ushort leftShoulder = 0x0100, rightShoulder = 0x0200;
+
+        var horizontal = (buttons & dpadLeft) != 0 ? -1 : (buttons & dpadRight) != 0 ? 1 :
+            stickX < -16000 ? -1 : stickX > 16000 ? 1 : 0;
+        var vertical = (buttons & dpadUp) != 0 ? -1 : (buttons & dpadDown) != 0 ? 1 :
+            stickY > 16000 ? -1 : stickY < -16000 ? 1 : 0;
+
+        var now = DateTime.UtcNow;
+        var navigationReady = (now - _lastNavigationAt).TotalMilliseconds >= 180;
+        if (navigationReady && (horizontal != 0 || vertical != 0))
         {
-            if (Keyboard.FocusedElement is TextBox) Keyboard.ClearFocus();
-            else NavigateFocus(-1);
+            NavigateSpatially(horizontal, vertical);
+            _lastNavigationAt = now;
         }
+
+        if (Pressed(buttons, buttonA)) ActivateFocusedControl();
+        if (Pressed(buttons, buttonB) || Pressed(buttons, buttonBack)) GoBack();
+        if (Pressed(buttons, buttonStart)) AddGame_Click(this, new RoutedEventArgs());
+        if (Pressed(buttons, buttonY)) Statistics_Click(this, new RoutedEventArgs());
+        if (Pressed(buttons, buttonX)) SetFullscreen(!_isFullscreen);
+        if (Pressed(buttons, leftShoulder)) FocusFirstGameAction();
+        if (Pressed(buttons, rightShoulder)) FocusSearchOrAddButton();
+
         _previousGamepadButtons = buttons;
-        _previousStickDirection = direction;
+        _previousStickDirection = vertical;
+        _previousHorizontalDirection = horizontal;
     }
 
-    private void NavigateFocus(int direction)
+    private bool Pressed(ushort current, ushort mask) =>
+        (current & mask) != 0 && (_previousGamepadButtons & mask) == 0;
+
+    private void NavigateSpatially(int horizontal, int vertical)
     {
-        var focused = Keyboard.FocusedElement as UIElement ?? this;
-        focused.MoveFocus(new TraversalRequest(direction > 0 ? FocusNavigationDirection.Next : FocusNavigationDirection.Previous));
+        var current = Keyboard.FocusedElement as FrameworkElement;
+        if (current is null || !IsDescendantOf(current, this))
+        {
+            FocusFirstGameAction();
+            return;
+        }
+
+        var candidates = GetFocusableElements(this)
+            .Where(element => element != current && element.IsVisible && element.IsEnabled &&
+                              element.Focusable && element.IsTabStop)
+            .Select(element => new { Element = element, Bounds = GetBounds(element) })
+            .Where(item => item.Bounds.HasValue)
+            .ToList();
+
+        var origin = GetBounds(current);
+        if (!origin.HasValue) return;
+        var ox = origin.Value.Left + origin.Value.Width / 2;
+        var oy = origin.Value.Top + origin.Value.Height / 2;
+
+        var next = candidates
+            .Select(item =>
+            {
+                var x = item.Bounds!.Value.Left + item.Bounds.Value.Width / 2;
+                var y = item.Bounds.Value.Top + item.Bounds.Value.Height / 2;
+                var dx = x - ox;
+                var dy = y - oy;
+                var primary = horizontal != 0 ? dx * horizontal : dy * vertical;
+                var secondary = horizontal != 0 ? Math.Abs(dy) : Math.Abs(dx);
+                var cross = horizontal != 0 ? Math.Abs(dx) : Math.Abs(dy);
+                var score = primary > 1 ? primary + secondary * 1.8 + cross * 0.15 : double.MaxValue;
+                return new { item.Element, Score = score };
+            })
+            .Where(item => item.Score < double.MaxValue)
+            .OrderBy(item => item.Score)
+            .FirstOrDefault()?.Element;
+
+        if (next is null) return;
+        next.Focus();
+        next.BringIntoView();
+    }
+
+    private Rect? GetBounds(FrameworkElement element)
+    {
+        try
+        {
+            if (!element.IsLoaded) return null;
+            return element.TransformToAncestor(this).TransformBounds(new Rect(new Point(0, 0), element.RenderSize));
+        }
+        catch (InvalidOperationException) { return null; }
+    }
+
+    private static System.Collections.Generic.IEnumerable<FrameworkElement> GetFocusableElements(DependencyObject parent)
+    {
+        for (var i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+            if (child is FrameworkElement element && element.Focusable && element.IsTabStop)
+                yield return element;
+            foreach (var descendant in GetFocusableElements(child))
+                yield return descendant;
+        }
+    }
+
+    private static bool IsDescendantOf(DependencyObject child, DependencyObject parent)
+    {
+        var current = child;
+        while (current is not null)
+        {
+            if (current == parent) return true;
+            current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+        }
+        return false;
+    }
+
+    private void FocusFirstGameAction()
+    {
+        var first = GetFocusableElements(GamesItems).FirstOrDefault(element => element is Button);
+        if (first is not null) { first.Focus(); first.BringIntoView(); }
+        else FocusSearchOrAddButton();
+    }
+
+    private void FocusSearchOrAddButton()
+    {
+        if (SearchBox.IsVisible) SearchBox.Focus();
+        else FullscreenButton.Focus();
+    }
+
+    private void GoBack()
+    {
+        if (Keyboard.FocusedElement is TextBox textBox)
+        {
+            Keyboard.ClearFocus();
+            FocusFirstGameAction();
+            return;
+        }
+        if (_isFullscreen)
+        {
+            SetFullscreen(false);
+            return;
+        }
+        FocusFirstGameAction();
     }
 
     private static void ActivateFocusedControl()
     {
         if (Keyboard.FocusedElement is Button button && button.IsEnabled)
             button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        else if (Keyboard.FocusedElement is TextBox textBox)
+            textBox.Focus();
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => ApplySearch();
