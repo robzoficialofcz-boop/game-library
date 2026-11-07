@@ -59,7 +59,7 @@
    </Style.Triggers>
   </Style>
   <DataTemplate x:Key="GameCard">
-   <Border Width="190" Margin="0,0,16,10" CornerRadius="13" Background="#151A25"
+   <Border Width="190" Margin="0,0,16,10" CornerRadius="13" Background="#E6151A25" MouseEnter="GameCard_MouseEnter"
            BorderBrush="#292F3D" BorderThickness="1" GotKeyboardFocus="GameCard_GotKeyboardFocus">
     <Border.Style>
      <Style TargetType="Border">
@@ -138,7 +138,7 @@
  </Window.Resources>
  <Grid>
   <Grid.RowDefinitions><RowDefinition Height="38"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-  <Grid Grid.Row="0" Background="#0D1018" MouseLeftButtonDown="WindowTitleBar_MouseLeftButtonDown">
+  <Grid Grid.Row="0" Background="#A60D1018" MouseLeftButtonDown="WindowTitleBar_MouseLeftButtonDown">
    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0,0,0">
     <Image Source="/Assets/GameLibraryLogo.ico" Width="19" Height="19" Margin="0,0,9,0"/>
@@ -152,7 +152,7 @@
   </Grid>
   <Grid Grid.Row="1">
   <Grid.ColumnDefinitions><ColumnDefinition Width="238"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-  <Border Grid.Column="0" Background="#10131C" BorderBrush="#252B38" BorderThickness="0,0,1,0">
+  <Border Grid.Column="0" Background="#B810131C" BorderBrush="#252B38" BorderThickness="0,0,1,0">
    <Grid Margin="20,24,20,20">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <StackPanel Grid.Row="0">
@@ -196,21 +196,7 @@
      <Button Content="+  ADICIONAR" Style="{StaticResource PrimaryButton}" Click="AddGame_Click"/>
     </StackPanel>
    </Grid>
-   <Border Grid.Row="1" Background="#171C28" CornerRadius="17" ClipToBounds="True" BorderBrush="#343047" BorderThickness="1">
-    <Border.Effect><DropShadowEffect Color="#6F51C7" BlurRadius="28" ShadowDepth="0" Opacity="0.16"/></Border.Effect>
-    <Grid Background="#171C28">
-     <Image x:Name="HeroCover" Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-     <Rectangle>
-      <Rectangle.Fill>
-       <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#0010141D" Offset="0"/>
-        <GradientStop Color="#2210141D" Offset="0.65"/>
-        <GradientStop Color="#6610141D" Offset="1"/>
-       </LinearGradientBrush>
-      </Rectangle.Fill>
-     </Rectangle>
-    </Grid>
-   </Border>
+   <Grid Grid.Row="1"/>
    <Grid Grid.Row="2" Margin="0,24,0,14">
     <StackPanel VerticalAlignment="Center">
      <TextBlock Text="SUA COLEÇÃO" Foreground="#F4F5FA" FontSize="15" FontWeight="Bold"/>
