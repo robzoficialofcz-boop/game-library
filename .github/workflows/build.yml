@@ -23,40 +23,16 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Generate Windows application icon
+      - name: Validate custom Windows application icon
         shell: pwsh
         run: |
-          Add-Type -AssemblyName System.Drawing
-          $bitmap = New-Object System.Drawing.Bitmap(256, 256)
-          $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-          try {
-            $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-            $graphics.Clear([System.Drawing.Color]::FromArgb(13, 15, 20))
-            $purple = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(139, 92, 246))
-            $white = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
-            $dark = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(13, 15, 20))
-            $pen = New-Object System.Drawing.Pen([System.Drawing.Color]::White, 13)
-            try {
-              $graphics.FillRoundedRectangle($purple, 18, 18, 220, 220, 48)
-            } catch {
-              $graphics.FillRectangle($purple, 18, 18, 220, 220)
-            }
-            $graphics.FillEllipse($white, 61, 91, 134, 88)
-            $graphics.FillEllipse($dark, 82, 115, 18, 48)
-            $graphics.FillEllipse($dark, 68, 130, 46, 18)
-            $graphics.FillEllipse($purple, 148, 112, 17, 17)
-            $graphics.FillEllipse($purple, 171, 135, 17, 17)
-            $handle = $bitmap.GetHicon()
-            try {
-              $icon = [System.Drawing.Icon]::FromHandle($handle)
-              $stream = [System.IO.File]::Create("$env:GITHUB_WORKSPACE/Assets/GameLibraryLogo.ico")
-              try { $icon.Save($stream) } finally { $stream.Dispose(); $icon.Dispose() }
-            } finally {
-              [void][System.Runtime.InteropServices.Marshal]::DestroyIcon($handle)
-            }
-          } finally {
-            $graphics.Dispose()
-            $bitmap.Dispose()
+          $iconPath = "Assets/GameLibraryLogo.ico"
+          if (-not (Test-Path $iconPath)) {
+            throw "Missing custom icon: $iconPath"
+          }
+          $bytes = [System.IO.File]::ReadAllBytes($iconPath)
+          if ($bytes.Length -lt 22 -or $bytes[0] -ne 0 -or $bytes[1] -ne 0 -or $bytes[2] -ne 1 -or $bytes[3] -ne 0) {
+            throw "The application icon is not a valid ICO file."
           }
 
       - name: Restore
