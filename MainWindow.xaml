@@ -9,10 +9,10 @@
    <Setter Property="Cursor" Value="Hand"/>
    <Style.Triggers>
     <Trigger Property="IsKeyboardFocused" Value="True">
-     <Setter Property="BorderBrush" Value="#C4B5FD"/>
+     <Setter Property="BorderBrush" Value="#FFFFFF"/>
      <Setter Property="BorderThickness" Value="3"/>
      <Setter Property="Effect">
-      <Setter.Value><DropShadowEffect Color="#A78BFA" BlurRadius="18" ShadowDepth="0" Opacity="0.95"/></Setter.Value>
+      <Setter.Value><DropShadowEffect Color="#FFFFFF" BlurRadius="18" ShadowDepth="0" Opacity="0.95"/></Setter.Value>
      </Setter>
     </Trigger>
    </Style.Triggers>
@@ -27,11 +27,11 @@
       <Setter Property="Background" Value="#171B24"/>
       <Style.Triggers>
        <Trigger Property="IsKeyboardFocusWithin" Value="True">
-        <Setter Property="BorderBrush" Value="#D8C7FF"/>
+        <Setter Property="BorderBrush" Value="#FFFFFF"/>
         <Setter Property="BorderThickness" Value="3"/>
-        <Setter Property="Background" Value="#302347"/>
+        <Setter Property="Background" Value="#242A36"/>
         <Setter Property="Effect">
-         <Setter.Value><DropShadowEffect Color="#9B70FF" BlurRadius="26" ShadowDepth="0" Opacity="1"/></Setter.Value>
+         <Setter.Value><DropShadowEffect Color="#FFFFFF" BlurRadius="26" ShadowDepth="0" Opacity="1"/></Setter.Value>
         </Setter>
        </Trigger>
       </Style.Triggers>
