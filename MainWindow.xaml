@@ -136,8 +136,10 @@
    </Border>
   </DataTemplate>
  </Window.Resources>
- <Grid>
+ <Grid ClipToBounds="True">
   <Grid.RowDefinitions><RowDefinition Height="38"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+  <Image x:Name="LibraryBackground" Grid.RowSpan="2" Stretch="UniformToFill" Opacity="0.88" IsHitTestVisible="False"/>
+  <Rectangle Grid.RowSpan="2" Fill="#B80B0F18" IsHitTestVisible="False"/>
   <Grid Grid.Row="0" Background="#A60D1018" MouseLeftButtonDown="WindowTitleBar_MouseLeftButtonDown">
    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0,0,0">
