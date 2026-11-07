@@ -62,7 +62,9 @@
   <Border Grid.Column="0" Background="#10131A">
    <DockPanel Margin="18,24">
     <StackPanel DockPanel.Dock="Top">
-     <TextBlock Text="◈  GAME LIBRARY" Foreground="White" FontSize="16" FontWeight="Bold" Margin="5,4,0,42"/>
+     <Image Source="/Assets/GameLibraryLogo.jpg" Width="126" Height="126"
+            Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,18"/>
+     <TextBlock Text="GAME LIBRARY" Foreground="White" FontSize="16" FontWeight="Bold" Margin="5,4,0,30"/>
      <TextBlock Text="NAVEGAR" Foreground="#626C7D" FontSize="9" FontWeight="Bold" Margin="8,0,0,12"/>
      <Button Content="⌂   Início" Style="{StaticResource NavButton}" Background="#29213F" Foreground="#D4C5FF"/>
      <Button Content="▦   Biblioteca" Style="{StaticResource NavButton}" Click="FocusFirstGameAction_Click"/>
