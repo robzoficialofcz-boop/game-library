@@ -53,6 +53,44 @@ public partial class MainWindow : Window
         _controllerTimer.Start();
     }
 
+    private void WindowTitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left) return;
+
+        if (e.ClickCount == 2)
+        {
+            ToggleMaximizeRestore();
+            return;
+        }
+
+        if (WindowState == WindowState.Maximized)
+        {
+            var point = e.GetPosition(this);
+            var screenPoint = PointToScreen(point);
+            WindowState = WindowState.Normal;
+            Left = screenPoint.X - (RestoreBounds.Width * (point.X / ActualWidth));
+            Top = screenPoint.Y - 12;
+        }
+
+        DragMove();
+    }
+
+    private void MinimizeWindow_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void MaximizeWindow_Click(object sender, RoutedEventArgs e)
+        => ToggleMaximizeRestore();
+
+    private void CloseWindow_Click(object sender, RoutedEventArgs e)
+        => Close();
+
+    private void ToggleMaximizeRestore()
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
     private void ToggleFullscreen_Click(object sender, RoutedEventArgs e) => SetFullscreen(!_isFullscreen);
 
     private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
