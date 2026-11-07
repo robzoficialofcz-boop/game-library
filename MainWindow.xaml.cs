@@ -784,7 +784,6 @@ public partial class MainWindow : Window
                 var row = new Grid
                 {
                     Margin = new Thickness(0, 0, 0, 15),
-                    Padding = new Thickness(5),
                     Focusable = true,
                     Background = Brushes.Transparent
                 };
