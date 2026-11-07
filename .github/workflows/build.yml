@@ -1,11 +1,15 @@
-name: Build WPF
+name: Build and Publish Windows App
 
 on:
   push:
     branches: [ main, master ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -13,11 +17,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
       - name: Restore
         run: dotnet restore GameLibrary.csproj
+
       - name: Build
         run: dotnet build GameLibrary.csproj --configuration Release --no-restore
+
+      - name: Publish self-contained Windows x64
+        run: >
+          dotnet publish GameLibrary.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          --output ./publish
+
+      - name: Upload Windows executable
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Game-Library-Windows-x64
+          path: publish/
+          if-no-files-found: error
+          retention-days: 30
