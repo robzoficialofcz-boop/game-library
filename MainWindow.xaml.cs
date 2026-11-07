@@ -295,39 +295,55 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Include every real interactive control, not only the game launch buttons.
         var candidates = GetFocusableElements(this)
             .Where(element => element != current && element.IsVisible && element.IsEnabled &&
-                              element is Control control && control.Focusable &&
-                              KeyboardNavigation.GetIsTabStop(element))
+                              element.Focusable && KeyboardNavigation.GetIsTabStop(element))
             .Select(element => new { Element = element, Bounds = GetBounds(element) })
-            .Where(item => item.Bounds.HasValue)
+            .Where(item => item.Bounds.HasValue && item.Bounds.Value.Width > 0 && item.Bounds.Value.Height > 0)
             .ToList();
 
+        if (candidates.Count == 0) { FocusFirstGameAction(); return; }
         var origin = GetBounds(current);
-        if (!origin.HasValue) return;
+        if (!origin.HasValue) { FocusFirstGameAction(); return; }
+
         var ox = origin.Value.Left + origin.Value.Width / 2;
         var oy = origin.Value.Top + origin.Value.Height / 2;
+        var ranked = candidates.Select(item =>
+        {
+            var bounds = item.Bounds!.Value;
+            var x = bounds.Left + bounds.Width / 2;
+            var y = bounds.Top + bounds.Height / 2;
+            var dx = x - ox;
+            var dy = y - oy;
+            var primary = horizontal != 0 ? dx * horizontal : dy * vertical;
+            var secondary = horizontal != 0 ? Math.Abs(dy) : Math.Abs(dx);
+            var score = primary > 2
+                ? primary + secondary * 1.35 + secondary * secondary / Math.Max(primary, 1) * 0.15
+                : double.MaxValue;
+            return new { item.Element, Score = score, X = x, Y = y };
+        }).ToList();
 
-        var next = candidates
-            .Select(item =>
-            {
-                var x = item.Bounds!.Value.Left + item.Bounds.Value.Width / 2;
-                var y = item.Bounds.Value.Top + item.Bounds.Value.Height / 2;
-                var dx = x - ox;
-                var dy = y - oy;
-                var primary = horizontal != 0 ? dx * horizontal : dy * vertical;
-                var secondary = horizontal != 0 ? Math.Abs(dy) : Math.Abs(dx);
-                var cross = horizontal != 0 ? Math.Abs(dx) : Math.Abs(dy);
-                var score = primary > 1 ? primary + secondary * 1.8 + cross * 0.15 : double.MaxValue;
-                return new { item.Element, Score = score };
-            })
-            .Where(item => item.Score < double.MaxValue)
-            .OrderBy(item => item.Score)
-            .FirstOrDefault()?.Element;
+        var next = ranked.Where(item => item.Score < double.MaxValue)
+                         .OrderBy(item => item.Score)
+                         .FirstOrDefault()?.Element;
 
-        if (next is null) return;
-        next.Focus();
+        // If there is no control in that direction, wrap to the opposite edge
+        // instead of silently losing controller navigation.
+        if (next is null)
+        {
+            next = ranked.OrderBy(item =>
+                horizontal != 0
+                    ? Math.Abs(item.Y - oy) * 2 + (horizontal > 0 ? item.X : -item.X)
+                    : Math.Abs(item.X - ox) * 2 + (vertical > 0 ? item.Y : -item.Y))
+                .FirstOrDefault()?.Element;
+        }
+
+        if (next is null || !next.Focus())
+        {
+            FocusFirstGameAction();
+            return;
+        }
+
         next.BringIntoView();
     }
 
