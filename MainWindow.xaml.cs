@@ -45,6 +45,8 @@ public partial class MainWindow : Window
     private WindowStyle _previousWindowStyle;
     private ResizeMode _previousResizeMode;
     private WindowState _previousWindowState;
+    private WindowState _windowStateBeforeGame = WindowState.Normal;
+    private bool _minimizedForGame;
 
     public MainWindow()
     {
@@ -550,6 +552,11 @@ public partial class MainWindow : Window
             NowPlayingText.Text = game.Name;
             StatusText.Text = $"Monitorando: {game.Name}";
             _ = PersistSafelyAsync();
+
+            // Keep the library running in the background while the game is open.
+            _windowStateBeforeGame = WindowState;
+            _minimizedForGame = true;
+            WindowState = WindowState.Minimized;
         }
         catch (Exception ex)
         {
@@ -604,7 +611,21 @@ public partial class MainWindow : Window
         NowPlayingText.Text = "Nenhum";
         UpdateStatistics();
         await PersistSafelyAsync();
+        RestoreLibraryAfterGame();
         StatusText.Text = "Sessão monitorada finalizada.";
+    }
+
+    private void RestoreLibraryAfterGame()
+    {
+        if (!_minimizedForGame || _isClosing) return;
+
+        _minimizedForGame = false;
+        Show();
+        WindowState = _windowStateBeforeGame == WindowState.Minimized
+            ? WindowState.Normal
+            : _windowStateBeforeGame;
+        Activate();
+        FocusFirstGameAction();
     }
 
     private async Task PersistSafelyAsync()
