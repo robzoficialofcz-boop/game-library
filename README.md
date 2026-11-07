@@ -41,6 +41,17 @@ Para compilar:
 dotnet build -c Release
 ```
 
+## Baixar versão para Windows
+
+A cada atualização enviada para a branch `main), o GitHub Actions compila e publica um pacote independente para Windows x64.
+
+1. Abra a aba **Actions** do repositório.
+2. Selecione a execução mais recente com resultado verde.
+3. Na seção **Artifacts**, baixe `Game-Library-Windows-x64`.
+4. Extraia o ZIP e execute `GameLibrary.exe`.
+
+O pacote é self-contained: não exige instalar o .NET 8 separadamente. O artefato automático fica disponível por 30 dias. Esta etapa publica o aplicativo portátil; ainda não gera um instalador tradicional com assistente de instalação.
+
 ## Capas automáticas (opcional)
 
 A busca de capas usa a API da [SteamGridDB](https://www.steamgriddb.com/). Para habilitar:
