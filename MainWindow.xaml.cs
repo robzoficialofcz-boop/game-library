@@ -47,6 +47,7 @@ public partial class MainWindow : Window
     private WindowState _previousWindowState;
     private WindowState _windowStateBeforeGame = WindowState.Normal;
     private bool _minimizedForGame;
+    private Window? _controllerDialogWindow;
 
     public MainWindow()
     {
@@ -338,14 +339,15 @@ public partial class MainWindow : Window
 
     private void NavigateSpatially(int horizontal, int vertical)
     {
+        var navigationRoot = _controllerDialogWindow is { IsVisible: true } dialog ? dialog : this;
         var current = Keyboard.FocusedElement as FrameworkElement;
-        if (current is null || !IsDescendantOf(current, this))
+        if (current is null || !IsDescendantOf(current, navigationRoot))
         {
             FocusFirstGameAction();
             return;
         }
 
-        var candidates = GetFocusableElements(this)
+        var candidates = GetFocusableElements(navigationRoot)
             .Where(element => element != current && element.IsVisible && element.IsEnabled &&
                               element.Focusable && KeyboardNavigation.GetIsTabStop(element))
             .Select(element => new { Element = element, Bounds = GetBounds(element) })
@@ -402,7 +404,8 @@ public partial class MainWindow : Window
         try
         {
             if (!element.IsLoaded) return null;
-            return element.TransformToAncestor(this).TransformBounds(new Rect(new Point(0, 0), element.RenderSize));
+            var root = _controllerDialogWindow is { IsVisible: true } dialog ? dialog : this;
+            return element.TransformToAncestor(root).TransformBounds(new Rect(new Point(0, 0), element.RenderSize));
         }
         catch (InvalidOperationException) { return null; }
     }
@@ -434,6 +437,13 @@ public partial class MainWindow : Window
 
     private void FocusFirstGameAction()
     {
+        if (_controllerDialogWindow is { IsVisible: true } dialog)
+        {
+            var dialogFirst = GetFocusableElements(dialog).FirstOrDefault(element => element.Focusable && element.IsEnabled);
+            if (dialogFirst is not null) { dialogFirst.Focus(); dialogFirst.BringIntoView(); }
+            return;
+        }
+
         var first = GetFocusableElements(GamesItems).FirstOrDefault(element => element is Button);
         if (first is not null) { first.Focus(); first.BringIntoView(); }
         else FocusSearchOrAddButton();
@@ -447,6 +457,12 @@ public partial class MainWindow : Window
 
     private void GoBack()
     {
+        if (_controllerDialogWindow is { IsVisible: true } dialog)
+        {
+            dialog.Close();
+            return;
+        }
+
         if (Keyboard.FocusedElement is TextBox textBox)
         {
             Keyboard.ClearFocus();
@@ -817,7 +833,41 @@ public partial class MainWindow : Window
         Grid.SetRow(footer, 2);
         root.Children.Add(footer);
 
+        var closeButton = new Button
+        {
+            Content = "FECHAR  (B / VOLTAR)",
+            Width = 170,
+            Height = 38,
+            Margin = new Thickness(0, 12, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Background = new SolidColorBrush(Color.FromRgb(49, 42, 73)),
+            Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(143, 105, 235)),
+            FontSize = 10,
+            FontWeight = FontWeights.Bold,
+            IsDefault = false,
+            IsCancel = true
+        };
+        closeButton.Click += (_, _) => window.Close();
+        Grid.SetRow(closeButton, 2);
+        footer.Margin = new Thickness(0, 18, 190, 0);
+        root.Children.Add(closeButton);
+
         window.Content = root;
+        window.PreviewKeyDown += (_, args) =>
+        {
+            if (args.Key == Key.Escape)
+            {
+                window.Close();
+                args.Handled = true;
+            }
+        };
+        window.Closed += (_, _) =>
+        {
+            if (_controllerDialogWindow == window) _controllerDialogWindow = null;
+            Dispatcher.BeginInvoke(new Action(FocusFirstGameAction));
+        };
+        _controllerDialogWindow = window;
         window.ShowDialog();
     }
 
