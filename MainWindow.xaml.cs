@@ -28,6 +28,12 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
     public ObservableCollection<Game> Games { get; } = new();
     private readonly GameStorageService _storage = new();
     private readonly GameLauncherService _launcher = new();
@@ -53,6 +59,7 @@ public partial class MainWindow : Window
     private WindowState _previousWindowState;
     private WindowState _windowStateBeforeGame = WindowState.Normal;
     private bool _minimizedForGame;
+    private int _launcherExitChecks;
     private Window? _controllerDialogWindow;
 
     public MainWindow()
@@ -566,6 +573,7 @@ public partial class MainWindow : Window
         {
             _activeProcess?.Dispose();
             _activeProcess = _launcher.Start(game);
+            _launcherExitChecks = 0;
             _activeGame = game;
             _session = Stopwatch.StartNew();
             _savedElapsed = TimeSpan.Zero;
@@ -633,9 +641,21 @@ public partial class MainWindow : Window
 
         if (!IsProcessRunning(_activeProcess))
         {
+            // Launchers often close after spawning the actual game process.
+            // Give the game window time to appear and adopt its process before
+            // treating the session as finished.
+            if (TryAdoptForegroundGameProcess())
+                return;
+
+            _launcherExitChecks++;
+            if (_launcherExitChecks < 20)
+                return;
+
             await FinishSessionAsync();
             return;
         }
+
+        _launcherExitChecks = 0;
 
         var elapsed = _session.Elapsed;
         var delta = elapsed - _savedElapsed;
@@ -648,6 +668,38 @@ public partial class MainWindow : Window
 
         if ((int)elapsed.TotalSeconds % 30 == 0)
             await PersistSafelyAsync();
+    }
+
+    private bool TryAdoptForegroundGameProcess()
+    {
+        try
+        {
+            var foregroundWindow = GetForegroundWindow();
+            if (foregroundWindow == IntPtr.Zero) return false;
+
+            GetWindowThreadProcessId(foregroundWindow, out var processId);
+            if (processId == 0 || processId == (uint)Environment.ProcessId) return false;
+
+            var candidate = Process.GetProcessById((int)processId);
+            candidate.Refresh();
+
+            // Only adopt a real application window, not Explorer or the desktop.
+            if (candidate.HasExited || candidate.MainWindowHandle == IntPtr.Zero)
+            {
+                candidate.Dispose();
+                return false;
+            }
+
+            var oldProcess = _activeProcess;
+            _activeProcess = candidate;
+            oldProcess?.Dispose();
+            _launcherExitChecks = 0;
+            StatusText.Text = $"Jogo em execução: {_activeGame?.Name ?? candidate.ProcessName}";
+            return true;
+        }
+        catch (ArgumentException) { return false; }
+        catch (InvalidOperationException) { return false; }
+        catch (System.ComponentModel.Win32Exception) { return false; }
     }
 
     private async Task FinishSessionAsync()
