@@ -1,0 +1,14 @@
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+.vs/
+.idea/
+*.user
+*.suo
+.env
+.env.*
+!.env.example
+secrets.json
+Thumbs.db
+.DS_Store
