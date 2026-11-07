@@ -93,7 +93,8 @@
     <TextBlock Text="SUA COLEÇÃO" Foreground="#F5F5F8" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
      <TextBlock x:Name="GameCountText" Text="0 JOGOS" Foreground="#8F98A9" FontSize="9" VerticalAlignment="Center" Margin="0,0,18,0"/>
-     <TextBlock x:Name="TotalTimeText" Text="0 min jogados" Foreground="#8F98A9" FontSize="9" VerticalAlignment="Center"/>
+     <TextBlock x:Name="TotalTimeText" Text="0 min jogados" Foreground="#8F98A9" FontSize="9" VerticalAlignment="Center" Margin="0,0,18,0"/>
+     <TextBlock x:Name="NowPlayingText" Text="Nenhum" Foreground="#B99CFF" FontSize="9" VerticalAlignment="Center"/>
     </StackPanel>
    </Grid>
    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
