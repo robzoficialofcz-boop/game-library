@@ -4,8 +4,10 @@
  Title="Game Library" Width="1320" Height="820" MinWidth="1000" MinHeight="650"
  WindowStartupLocation="CenterScreen" Background="{StaticResource WindowBrush}" PreviewKeyDown="MainWindow_PreviewKeyDown">
  <Window.Resources>
+  <Style TargetType="Button"><Setter Property="FocusVisualStyle" Value="{x:Null}"/><Style.Triggers><Trigger Property="IsKeyboardFocused" Value="True"><Setter Property="BorderBrush" Value="#A78BFA"/><Setter Property="BorderThickness" Value="2"/></Trigger></Style.Triggers></Style>
   <DataTemplate x:Key="GameCard">
-   <Border Width="190" Margin="0,0,18,20" Background="#171B24" CornerRadius="12" ClipToBounds="True">
+   <Border Width="190" Margin="0,0,18,20" Background="#171B24" CornerRadius="12" BorderThickness="2" BorderBrush="Transparent" ClipToBounds="True">
+    <Border.Style><Style TargetType="Border"><Setter Property="BorderBrush" Value="Transparent"/><Setter Property="BorderThickness" Value="2"/><Style.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter Property="BorderBrush" Value="#A78BFA"/><Setter Property="BorderThickness" Value="3"/></Trigger></Style.Triggers></Style></Border.Style>
     <StackPanel>
      <Grid Height="210" Background="#252B38">
       <Image Source="{Binding CoverPath}" Stretch="UniformToFill"/>
@@ -54,7 +56,7 @@
     <StackPanel>
      <TextBlock Text="Sua biblioteca" Foreground="#F5F5F8" FontSize="27" FontWeight="Bold"/>
      <TextBlock Text="Todos os seus jogos em um só lugar." Foreground="#8F98A9" FontSize="12" Margin="0,6,0,0"/>
-     <TextBlock x:Name="ControllerStatusText" Text="CONTROLE: conecte um joystick compatível com XInput" Foreground="#8F98A9" FontSize="9" Margin="0,7,0,0"/>
+     <TextBlock x:Name="ControllerStatusText" Text="CONTROLE: XInput | D-pad/analógico: mover • A: confirmar • B: voltar • START: adicionar • Y: estatísticas • X: tela cheia" Foreground="#8F98A9" FontSize="9" Margin="0,7,0,0"/>
     </StackPanel>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
      <Button x:Name="FullscreenButton" Content="TELA CHEIA" Margin="0,0,8,0"
