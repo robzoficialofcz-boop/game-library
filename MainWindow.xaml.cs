@@ -781,7 +781,16 @@ public partial class MainWindow : Window
                     ToolTip = $"{game.Name}: {FormatPlaytime(game.HoursPlayed)}"
                 });
 
-                var row = new Grid { Margin = new Thickness(0, 0, 0, 15) };
+                var row = new Grid
+                {
+                    Margin = new Thickness(0, 0, 0, 15),
+                    Padding = new Thickness(5),
+                    Focusable = true,
+                    Background = Brushes.Transparent
+                };
+                KeyboardNavigation.SetIsTabStop(row, true);
+                row.GotKeyboardFocus += (_, _) => row.Background = new SolidColorBrush(Color.FromRgb(42, 48, 65));
+                row.LostKeyboardFocus += (_, _) => row.Background = Brushes.Transparent;
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(15) });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -868,6 +877,7 @@ public partial class MainWindow : Window
             Dispatcher.BeginInvoke(new Action(FocusFirstGameAction));
         };
         _controllerDialogWindow = window;
+        window.Loaded += (_, _) => closeButton.Focus();
         window.ShowDialog();
     }
 
