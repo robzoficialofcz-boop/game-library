@@ -591,10 +591,16 @@ public partial class MainWindow : Window
             UpdateFeaturedGame(game);
     }
 
+    private void GameCard_MouseEnter(object sender, MouseEventArgs e)
+    {
+        if (sender is FrameworkElement element && element.DataContext is Game game)
+            UpdateFeaturedGame(game);
+    }
+
     private void UpdateFeaturedGame(Game? game)
     {
         _selectedGame = game;
-        HeroCover.Source = null;
+        LibraryBackground.Source = null;
 
         if (!string.IsNullOrWhiteSpace(game?.CoverPath) && File.Exists(game.CoverPath))
         {
@@ -606,9 +612,9 @@ public partial class MainWindow : Window
                 image.UriSource = new Uri(game.CoverPath, UriKind.Absolute);
                 image.EndInit();
                 image.Freeze();
-                HeroCover.Source = image;
+                LibraryBackground.Source = image;
             }
-            catch (Exception) { HeroCover.Source = null; }
+            catch (Exception) { LibraryBackground.Source = null; }
         }
     }
 
