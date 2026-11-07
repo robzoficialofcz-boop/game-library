@@ -299,6 +299,20 @@ public partial class MainWindow : Window
 
     private void OnControllerTimerTick(object? sender, EventArgs e)
     {
+        // While a game is running, the controller belongs exclusively to the game.
+        // Do not let its buttons or sticks trigger actions in the hidden library.
+        if (_session is not null || _activeGame is not null)
+        {
+            if (_gamepad.TryGetState(out var currentButtons, out _, out _))
+                _previousGamepadButtons = currentButtons;
+            else
+                _previousGamepadButtons = 0;
+
+            _previousStickDirection = 0;
+            _previousHorizontalDirection = 0;
+            return;
+        }
+
         if (!_gamepad.TryGetState(out var buttons, out var stickX, out var stickY))
         {
             if (_controllerConnected) ControllerStatusText.Text = "CONTROLE: desconectado";
@@ -586,10 +600,11 @@ public partial class MainWindow : Window
             // Give the launched game's window foreground priority before minimizing the library.
             await BringGameToForegroundAsync(_activeProcess);
 
-            // Keep the library running in the background while the game is open.
+            // Hide the library completely while the game is open.
+            // It remains alive to monitor the game and will be shown again on exit.
             _windowStateBeforeGame = WindowState;
             _minimizedForGame = true;
-            WindowState = WindowState.Minimized;
+            Hide();
         }
         catch (Exception ex)
         {
