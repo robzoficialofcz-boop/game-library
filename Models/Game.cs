@@ -11,6 +11,7 @@ public sealed class Game : INotifyPropertyChanged
     private double _hoursPlayed;
 
     public Guid Id { get; set; } = Guid.NewGuid();
+    public DateTime? LastPlayedUtc { get; set; }
     public string Name { get => _name; set { _name = value; OnPropertyChanged(); } }
     public string ExecutablePath { get => _executablePath; set { _executablePath = value; OnPropertyChanged(); } }
     public string? CoverPath { get => _coverPath; set { _coverPath = value; OnPropertyChanged(); } }
