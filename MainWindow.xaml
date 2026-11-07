@@ -20,6 +20,23 @@
   <DataTemplate x:Key="GameCard">
    <Border Width="174" Margin="0,0,14,8" CornerRadius="12"
            GotKeyboardFocus="GameCard_GotKeyboardFocus">
+    <Border.Style>
+     <Style TargetType="Border">
+      <Setter Property="BorderBrush" Value="#292F3B"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Background" Value="#171B24"/>
+      <Style.Triggers>
+       <Trigger Property="IsKeyboardFocusWithin" Value="True">
+        <Setter Property="BorderBrush" Value="#D8C7FF"/>
+        <Setter Property="BorderThickness" Value="3"/>
+        <Setter Property="Background" Value="#302347"/>
+        <Setter Property="Effect">
+         <Setter.Value><DropShadowEffect Color="#9B70FF" BlurRadius="26" ShadowDepth="0" Opacity="1"/></Setter.Value>
+        </Setter>
+       </Trigger>
+      </Style.Triggers>
+     </Style>
+    </Border.Style>
     <StackPanel>
      <Border Height="190" Background="#252B38" CornerRadius="11,11,0,0" ClipToBounds="True">
       <Grid>
