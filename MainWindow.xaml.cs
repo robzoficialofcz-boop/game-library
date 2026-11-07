@@ -58,7 +58,7 @@ public partial class MainWindow : Window
             UpdateStatistics();
             ApplySearch();
             StatusText.Text = $"Biblioteca local carregada: {Games.Count} jogo(s).";
-            Dispatcher.BeginInvoke(() => MoveFocus(new TraversalRequest(FocusNavigationDirection.First)));
+            Dispatcher.BeginInvoke(new Action(() => MoveFocus(new TraversalRequest(FocusNavigationDirection.First))));
         }
         catch (Exception ex)
         {
