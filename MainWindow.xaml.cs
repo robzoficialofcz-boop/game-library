@@ -78,6 +78,7 @@ public partial class MainWindow : Window
     private bool _minimizedForGame;
     private int _launcherExitChecks;
     private int _launcherProcessId;
+    private bool _statisticsDialogBWasPressed;
     private Window? _controllerDialogWindow;
 
     public MainWindow()
@@ -317,6 +318,31 @@ public partial class MainWindow : Window
 
     private void OnControllerTimerTick(object? sender, EventArgs e)
     {
+        // A modal statistics window has its own controller handling. Process B
+        // here before the normal library navigation so it always closes the dialog.
+        if (_controllerDialogWindow is { IsVisible: true } statisticsDialog)
+        {
+            if (_gamepad.TryGetState(out var dialogButtons, out _, out _))
+            {
+                var backPressed = (dialogButtons & 0x2000) != 0 || (dialogButtons & 0x0020) != 0;
+                if (backPressed && !_statisticsDialogBWasPressed)
+                {
+                    _statisticsDialogBWasPressed = true;
+                    statisticsDialog.Close();
+                }
+                else if (!backPressed)
+                {
+                    _statisticsDialogBWasPressed = false;
+                }
+            }
+            else
+            {
+                _statisticsDialogBWasPressed = false;
+            }
+
+            return;
+        }
+
         // While a game is running, the controller belongs exclusively to the game.
         // Do not let its buttons or sticks trigger actions in the hidden library.
         if (_session is not null || _activeGame is not null)
@@ -1053,6 +1079,7 @@ public partial class MainWindow : Window
             if (_controllerDialogWindow == window) _controllerDialogWindow = null;
             Dispatcher.BeginInvoke(new Action(FocusFirstGameAction));
         };
+        _statisticsDialogBWasPressed = false;
         _controllerDialogWindow = window;
         window.Loaded += (_, _) => closeButton.Focus();
         window.ShowDialog();
