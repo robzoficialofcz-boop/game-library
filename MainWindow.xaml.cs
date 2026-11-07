@@ -9,6 +9,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using GameLibrary.Models;
@@ -621,13 +623,184 @@ public partial class MainWindow : Window
 
     private void Statistics_Click(object sender, RoutedEventArgs e)
     {
-        var total = Games.Sum(g => g.HoursPlayed);
-        var most = Games.OrderByDescending(g => g.HoursPlayed).FirstOrDefault();
-        MessageBox.Show(this,
-            $"Jogos cadastrados: {Games.Count}\nTempo total: {total:F2} horas\n" +
-            (most is null ? "Nenhum jogo cadastrado." : $"Mais jogado: {most.Name} ({most.HoursPlayed:F2} h)"),
-            "Estatísticas", MessageBoxButton.OK, MessageBoxImage.Information);
+        var entries = Games.OrderByDescending(g => g.HoursPlayed).ToList();
+        var total = entries.Sum(g => g.HoursPlayed);
+
+        var window = new Window
+        {
+            Title = "Estatísticas da biblioteca",
+            Owner = this,
+            Width = 880,
+            Height = 610,
+            MinWidth = 760,
+            MinHeight = 520,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = new SolidColorBrush(Color.FromRgb(16, 19, 28)),
+            Foreground = Brushes.White,
+            FontFamily = new FontFamily("Segoe UI")
+        };
+
+        var root = new Grid { Margin = new Thickness(28) };
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 22) };
+        heading.Children.Add(new TextBlock
+        {
+            Text = "ESTATÍSTICAS",
+            Foreground = new SolidColorBrush(Color.FromRgb(174, 145, 255)),
+            FontSize = 10,
+            FontWeight = FontWeights.Bold
+        });
+        heading.Children.Add(new TextBlock
+        {
+            Text = "Tempo por jogo",
+            Foreground = Brushes.White,
+            FontSize = 27,
+            FontWeight = FontWeights.Bold,
+            Margin = new Thickness(0, 5, 0, 3)
+        });
+        heading.Children.Add(new TextBlock
+        {
+            Text = $"Total acumulado: {FormatPlaytime(total)}  •  {entries.Count} jogo(s)",
+            Foreground = new SolidColorBrush(Color.FromRgb(145, 155, 174)),
+            FontSize = 12
+        });
+        Grid.SetRow(heading, 0);
+        root.Children.Add(heading);
+
+        var content = new Grid();
+        content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(390) });
+        content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        Grid.SetRow(content, 1);
+        root.Children.Add(content);
+
+        var chartHost = new Grid { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        var canvas = new Canvas { Width = 340, Height = 340 };
+        chartHost.Children.Add(canvas);
+        Grid.SetColumn(chartHost, 0);
+        content.Children.Add(chartHost);
+
+        var legendScroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(20, 0, 0, 0) };
+        var legend = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        legendScroll.Content = legend;
+        Grid.SetColumn(legendScroll, 1);
+        content.Children.Add(legendScroll);
+
+        if (entries.Count == 0 || total <= 0)
+        {
+            legend.Children.Add(new TextBlock
+            {
+                Text = entries.Count == 0 ? "Adicione jogos para visualizar suas estatísticas." : "Ainda não há tempo de jogo registrado.",
+                Foreground = new SolidColorBrush(Color.FromRgb(160, 169, 187)),
+                FontSize = 13,
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 12, 0, 0)
+            });
+            canvas.Children.Add(new Ellipse
+            {
+                Width = 270,
+                Height = 270,
+                Fill = new SolidColorBrush(Color.FromRgb(37, 43, 57))
+            });
+            Canvas.SetLeft(canvas.Children[0], 35);
+            Canvas.SetTop(canvas.Children[0], 35);
+        }
+        else
+        {
+            Color[] palette =
+            {
+                Color.FromRgb(143, 105, 235), Color.FromRgb(74, 151, 224),
+                Color.FromRgb(68, 190, 157), Color.FromRgb(235, 169, 83),
+                Color.FromRgb(224, 104, 137), Color.FromRgb(117, 129, 220),
+                Color.FromRgb(176, 117, 210), Color.FromRgb(126, 167, 111)
+            };
+
+            var angle = -90d;
+            var index = 0;
+            foreach (var game in entries.Where(g => g.HoursPlayed > 0))
+            {
+                var sweep = game.HoursPlayed / total * 360d;
+                var start = angle * Math.PI / 180d;
+                var end = (angle + sweep) * Math.PI / 180d;
+                var center = new Point(170, 170);
+                var radius = 145d;
+                var startPoint = new Point(center.X + radius * Math.Cos(start), center.Y + radius * Math.Sin(start));
+                var endPoint = new Point(center.X + radius * Math.Cos(end), center.Y + radius * Math.Sin(end));
+                var figure = new PathFigure { StartPoint = center, IsClosed = true };
+                figure.Segments.Add(new LineSegment(startPoint, true));
+                figure.Segments.Add(new ArcSegment(endPoint, new Size(radius, radius), 0, sweep > 180, SweepDirection.Clockwise, true));
+                var geometry = new PathGeometry();
+                geometry.Figures.Add(figure);
+                var color = palette[index % palette.Length];
+                canvas.Children.Add(new System.Windows.Shapes.Path
+                {
+                    Data = geometry,
+                    Fill = new SolidColorBrush(color),
+                    Stroke = new SolidColorBrush(Color.FromRgb(16, 19, 28)),
+                    StrokeThickness = 2,
+                    ToolTip = $"{game.Name}: {FormatPlaytime(game.HoursPlayed)}"
+                });
+
+                var row = new Grid { Margin = new Thickness(0, 0, 0, 15) };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(15) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                var swatch = new Border
+                {
+                    Width = 10,
+                    Height = 10,
+                    CornerRadius = new CornerRadius(3),
+                    Background = new SolidColorBrush(color),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                row.Children.Add(swatch);
+                var name = new TextBlock
+                {
+                    Text = game.Name,
+                    Foreground = new SolidColorBrush(Color.FromRgb(232, 235, 244)),
+                    FontSize = 12,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    ToolTip = game.Name
+                };
+                Grid.SetColumn(name, 1);
+                row.Children.Add(name);
+                var value = new TextBlock
+                {
+                    Text = $"{FormatPlaytime(game.HoursPlayed)}  ({game.HoursPlayed / total:P0})",
+                    Foreground = new SolidColorBrush(Color.FromRgb(163, 173, 192)),
+                    FontSize = 11,
+                    Margin = new Thickness(12, 0, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                Grid.SetColumn(value, 2);
+                row.Children.Add(value);
+                legend.Children.Add(row);
+
+                angle += sweep;
+                index++;
+            }
+        }
+
+        var footer = new TextBlock
+        {
+            Text = entries.Count == 0 ? "O tempo de jogo será contabilizado enquanto os jogos forem executados pela biblioteca." :
+                $"Jogo mais utilizado: {(entries.FirstOrDefault()?.Name ?? "—")}  •  O gráfico considera o tempo registrado por jogo.",
+            Foreground = new SolidColorBrush(Color.FromRgb(119, 131, 152)),
+            FontSize = 10,
+            Margin = new Thickness(0, 18, 0, 0)
+        };
+        Grid.SetRow(footer, 2);
+        root.Children.Add(footer);
+
+        window.Content = root;
+        window.ShowDialog();
     }
+
+    private static string FormatPlaytime(double hours)
+        => hours < 1 ? $"{hours * 60:F0} min" : $"{hours:F1} h";
 
     private async void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
