@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using GameLibrary.Models;
 using GameLibrary.Services;
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
     private TimeSpan _savedElapsed;
     private bool _isClosing;
     private bool _isFullscreen;
+    private Game? _selectedGame;
     private WindowStyle _previousWindowStyle;
     private ResizeMode _previousResizeMode;
     private WindowState _previousWindowState;
@@ -106,6 +108,7 @@ public partial class MainWindow : Window
             }
             UpdateStatistics();
             ApplySearch();
+            UpdateFeaturedGame(Games.OrderByDescending(g => g.LastPlayedUtc).FirstOrDefault());
             StatusText.Text = $"Biblioteca local carregada: {Games.Count} jogo(s).";
             Dispatcher.BeginInvoke(new Action(() => MoveFocus(new TraversalRequest(FocusNavigationDirection.First))));
         }
@@ -138,6 +141,7 @@ public partial class MainWindow : Window
             ExecutablePath = dialog.FileName
         };
         Games.Add(game);
+        UpdateFeaturedGame(game);
         await PersistSafelyAsync();
         UpdateStatistics();
         ApplySearch();
@@ -220,6 +224,7 @@ public partial class MainWindow : Window
             return;
         }
         Games.Remove(game);
+        if (_selectedGame == game) UpdateFeaturedGame(Games.FirstOrDefault());
         await PersistSafelyAsync();
         UpdateStatistics();
         ApplySearch();
@@ -394,13 +399,61 @@ public partial class MainWindow : Window
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => ApplySearch();
 
+    private void GameCard_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (sender is FrameworkElement element && element.DataContext is Game game)
+            UpdateFeaturedGame(game);
+    }
+
+    private void UpdateFeaturedGame(Game? game)
+    {
+        _selectedGame = game;
+        HeroTitle.Text = game?.Name ?? "Sua biblioteca está vazia";
+        HeroPlaytime.Text = game is null ? "Adicione um jogo para começar" : game.PlaytimeText;
+        HeroPath.Text = game?.ExecutablePath ?? "Seus jogos aparecerão aqui.";
+        HeroPlayButton.IsEnabled = game is not null;
+        HeroCover.Source = null;
+
+        if (!string.IsNullOrWhiteSpace(game?.CoverPath) && File.Exists(game.CoverPath))
+        {
+            try
+            {
+                var image = new BitmapImage();
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.UriSource = new Uri(game.CoverPath, UriKind.Absolute);
+                image.EndInit();
+                image.Freeze();
+                HeroCover.Source = image;
+            }
+            catch (Exception) { HeroCover.Source = null; }
+        }
+    }
+
+    private void PlayFeatured_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedGame is null) return;
+        PlayGame_Click(new Button { Tag = _selectedGame }, e);
+    }
+
+    private void ChangeFeaturedCover_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedGame is null) return;
+        ChangeCover_Click(new Button { Tag = _selectedGame }, e);
+    }
+
+    private void FocusFirstGameAction_Click(object sender, RoutedEventArgs e) => FocusFirstGameAction();
+
     private void ApplySearch()
     {
         if (GamesItems is null) return;
         var query = SearchBox?.Text?.Trim() ?? "";
-        GamesItems.ItemsSource = string.IsNullOrEmpty(query)
-            ? Games
+        var visibleGames = string.IsNullOrEmpty(query)
+            ? Games.ToList()
             : Games.Where(g => g.Name.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+        GamesItems.ItemsSource = visibleGames;
+        if (_selectedGame is null || !visibleGames.Contains(_selectedGame))
+            UpdateFeaturedGame(visibleGames.FirstOrDefault());
     }
 
     private void PlayGame_Click(object sender, RoutedEventArgs e)
