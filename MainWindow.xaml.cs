@@ -34,6 +34,23 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ProcessBasicInformation
+    {
+        public IntPtr Reserved1;
+        public IntPtr PebBaseAddress;
+        public IntPtr Reserved2_0;
+        public IntPtr Reserved2_1;
+        public UIntPtr UniqueProcessId;
+        public UIntPtr InheritedFromUniqueProcessId;
+    }
+
+    [DllImport("ntdll.dll")]
+    private static extern int NtQueryInformationProcess(
+        IntPtr processHandle, int processInformationClass,
+        out ProcessBasicInformation processInformation,
+        uint processInformationLength, out uint returnLength);
     public ObservableCollection<Game> Games { get; } = new();
     private readonly GameStorageService _storage = new();
     private readonly GameLauncherService _launcher = new();
@@ -60,6 +77,7 @@ public partial class MainWindow : Window
     private WindowState _windowStateBeforeGame = WindowState.Normal;
     private bool _minimizedForGame;
     private int _launcherExitChecks;
+    private int _launcherProcessId;
     private Window? _controllerDialogWindow;
 
     public MainWindow()
@@ -587,6 +605,7 @@ public partial class MainWindow : Window
         {
             _activeProcess?.Dispose();
             _activeProcess = _launcher.Start(game);
+            _launcherProcessId = _activeProcess.Id;
             _launcherExitChecks = 0;
             _activeGame = game;
             _session = Stopwatch.StartNew();
@@ -698,8 +717,11 @@ public partial class MainWindow : Window
             var candidate = Process.GetProcessById((int)processId);
             candidate.Refresh();
 
-            // Only adopt a real application window, not Explorer or the desktop.
-            if (candidate.HasExited || candidate.MainWindowHandle == IntPtr.Zero)
+            // Never adopt an unrelated foreground app (for example, a browser
+            // opened while the game launcher is closing). Only follow descendants
+            // of the process that this library originally started.
+            if (candidate.HasExited || candidate.MainWindowHandle == IntPtr.Zero ||
+                !IsDescendantOfLaunchedProcess(candidate))
             {
                 candidate.Dispose();
                 return false;
@@ -715,6 +737,55 @@ public partial class MainWindow : Window
         catch (ArgumentException) { return false; }
         catch (InvalidOperationException) { return false; }
         catch (System.ComponentModel.Win32Exception) { return false; }
+    }
+
+    private bool IsDescendantOfLaunchedProcess(Process candidate)
+    {
+        var parentId = GetParentProcessId(candidate);
+        for (var depth = 0; parentId > 0 && depth < 12; depth++)
+        {
+            if (parentId == _launcherProcessId) return true;
+
+            try
+            {
+                using var parent = Process.GetProcessById(parentId);
+                parentId = GetParentProcessId(parent);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    private static int GetParentProcessId(Process process)
+    {
+        try
+        {
+            var status = NtQueryInformationProcess(
+                process.Handle, 0, out var information,
+                (uint)Marshal.SizeOf<ProcessBasicInformation>(), out _);
+
+            return status == 0
+                ? unchecked((int)information.InheritedFromUniqueProcessId.ToUInt32())
+                : 0;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or
+                                   System.ComponentModel.Win32Exception or
+                                   ObjectDisposedException)
+        {
+            return 0;
+        }
     }
 
     private async Task FinishSessionAsync()
