@@ -17,10 +17,13 @@
                  TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
       <TextBlock Text="{Binding PlaytimeText}" Foreground="#8F98A9" FontSize="9" Margin="0,5,0,12"/>
       <Grid>
-       <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-       <Button Content="JOGAR" Tag="{Binding}" Click="PlayGame_Click" Style="{StaticResource PrimaryButton}"/>
-       <Button Grid.Column="2" Content="REMOVER" Tag="{Binding}" Click="RemoveGame_Click"
-               Background="#292E3A" Foreground="#D5D9E2" BorderThickness="0" Padding="7,10" Cursor="Hand"/>
+       <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="7"/><RowDefinition/></Grid.RowDefinitions>
+       <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="7"/><ColumnDefinition/></Grid.ColumnDefinitions>
+       <Button Grid.ColumnSpan="3" Content="JOGAR" Tag="{Binding}" Click="PlayGame_Click" Style="{StaticResource PrimaryButton}"/>
+       <Button Grid.Row="2" Content="TROCAR CAPA" Tag="{Binding}" Click="ChangeCover_Click"
+               Background="#292E3A" Foreground="#D5D9E2" BorderThickness="0" Padding="5,9" FontSize="9" Cursor="Hand"/>
+       <Button Grid.Row="2" Grid.Column="2" Content="REMOVER" Tag="{Binding}" Click="RemoveGame_Click"
+               Background="#292E3A" Foreground="#D5D9E2" BorderThickness="0" Padding="5,9" FontSize="9" Cursor="Hand"/>
       </Grid>
      </StackPanel>
     </StackPanel>
