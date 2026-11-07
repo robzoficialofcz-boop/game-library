@@ -1,7 +1,7 @@
 <Window x:Class="GameLibrary.MainWindow"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="Game Library" Width="1320" Height="820" MinWidth="1000" MinHeight="650"
+ Title="Game Library" Icon="/Assets/GameLibraryLogo.ico" Width="1320" Height="820" MinWidth="1000" MinHeight="650"
  WindowStartupLocation="CenterScreen" Background="{StaticResource WindowBrush}" PreviewKeyDown="MainWindow_PreviewKeyDown">
  <Window.Resources>
   <Style TargetType="Button">
