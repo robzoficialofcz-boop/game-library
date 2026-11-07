@@ -65,6 +65,7 @@
     <GradientStop Color="#090B12" Offset="1"/>
    </LinearGradientBrush>
   </Grid.Background>
+  <Grid.ColumnDefinitions><ColumnDefinition Width="218"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
   <Ellipse Width="620" Height="620" HorizontalAlignment="Right" VerticalAlignment="Top"
            Margin="0,-260,-190,0" IsHitTestVisible="False">
    <Ellipse.Fill><RadialGradientBrush>
@@ -82,7 +83,6 @@
    </RadialGradientBrush></Ellipse.Fill>
    <Ellipse.Effect><BlurEffect Radius="54"/></Ellipse.Effect>
   </Ellipse>
-  <Grid.ColumnDefinitions><ColumnDefinition Width="218"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
   <Border Grid.Column="0" Background="#D90C0E15" BorderBrush="#202431" BorderThickness="0,0,1,0">
    <DockPanel Margin="18,24">
     <StackPanel DockPanel.Dock="Top">
