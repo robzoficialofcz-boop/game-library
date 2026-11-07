@@ -102,7 +102,21 @@
       <Grid>
        <Image Source="{Binding CoverPath}" Stretch="UniformToFill"/>
        <TextBlock Text="SEM CAPA" Foreground="#8C96AA" FontSize="9" FontWeight="Bold"
-                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock.Style>
+         <Style TargetType="TextBlock">
+          <Setter Property="Visibility" Value="Collapsed"/>
+          <Style.Triggers>
+           <DataTrigger Binding="{Binding CoverPath}" Value="{x:Null}">
+            <Setter Property="Visibility" Value="Visible"/>
+           </DataTrigger>
+           <DataTrigger Binding="{Binding CoverPath}" Value="">
+            <Setter Property="Visibility" Value="Visible"/>
+           </DataTrigger>
+          </Style.Triggers>
+         </Style>
+        </TextBlock.Style>
+       </TextBlock>
        <Border VerticalAlignment="Bottom" Height="54">
         <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
          <GradientStop Color="#0010141D" Offset="0"/><GradientStop Color="#CC10141D" Offset="1"/>
