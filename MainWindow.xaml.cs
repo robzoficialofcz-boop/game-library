@@ -171,9 +171,8 @@ public partial class MainWindow : Window
     private static bool IsProcessRunning(Process process)
     {
         try { return !process.HasExited; }
-        catch (InvalidOperationException) { return false; }
         catch (System.ComponentModel.Win32Exception) { return false; }
-        catch (ObjectDisposedException) { return false; }
+        catch (InvalidOperationException) { return false; }
     }
 
     private async void OnTimerTick(object? sender, EventArgs e)
