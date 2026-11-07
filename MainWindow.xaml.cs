@@ -318,28 +318,55 @@ public partial class MainWindow : Window
 
     private void OnControllerTimerTick(object? sender, EventArgs e)
     {
-        // A modal statistics window has its own controller handling. Process B
-        // here before the normal library navigation so it always closes the dialog.
+        // A janela modal de estatísticas recebe navegação dedicada do controle.
+        // O timer do dono continua ativo durante ShowDialog, mas o fluxo normal
+        // da biblioteca não deve interceptar os comandos enquanto o modal está aberto.
         if (_controllerDialogWindow is { IsVisible: true } statisticsDialog)
         {
-            if (_gamepad.TryGetState(out var dialogButtons, out _, out _))
+            if (!_gamepad.TryGetState(out var dialogButtons, out var dialogStickX, out var dialogStickY))
             {
-                var backPressed = (dialogButtons & 0x2000) != 0 || (dialogButtons & 0x0020) != 0;
-                if (backPressed && !_statisticsDialogBWasPressed)
-                {
-                    _statisticsDialogBWasPressed = true;
-                    statisticsDialog.Close();
-                }
-                else if (!backPressed)
-                {
-                    _statisticsDialogBWasPressed = false;
-                }
-            }
-            else
-            {
+                _previousGamepadButtons = 0;
+                _previousStickDirection = 0;
+                _previousHorizontalDirection = 0;
                 _statisticsDialogBWasPressed = false;
+                return;
             }
 
+            const ushort dialogDpadUp = 0x0001, dialogDpadDown = 0x0002;
+            const ushort dialogDpadLeft = 0x0004, dialogDpadRight = 0x0008;
+            const ushort dialogA = 0x1000, dialogB = 0x2000, dialogBack = 0x0020;
+
+            var dialogHorizontal = (dialogButtons & dialogDpadLeft) != 0 ? -1 :
+                (dialogButtons & dialogDpadRight) != 0 ? 1 :
+                dialogStickX < -16000 ? -1 : dialogStickX > 16000 ? 1 : 0;
+            var dialogVertical = (dialogButtons & dialogDpadUp) != 0 ? -1 :
+                (dialogButtons & dialogDpadDown) != 0 ? 1 :
+                dialogStickY > 16000 ? -1 : dialogStickY < -16000 ? 1 : 0;
+
+            var dialogNow = DateTime.UtcNow;
+            if ((dialogHorizontal != 0 || dialogVertical != 0) &&
+                (dialogNow - _lastNavigationAt).TotalMilliseconds >= 180)
+            {
+                NavigateSpatially(dialogHorizontal, dialogVertical);
+                _lastNavigationAt = dialogNow;
+            }
+
+            var closePressed = (dialogButtons & (dialogB | dialogBack)) != 0;
+            if (closePressed && !_statisticsDialogBWasPressed)
+            {
+                _statisticsDialogBWasPressed = true;
+                _previousGamepadButtons = dialogButtons;
+                statisticsDialog.Close();
+                return;
+            }
+            _statisticsDialogBWasPressed = closePressed;
+
+            if (Pressed(dialogButtons, dialogA))
+                ActivateFocusedControl();
+
+            _previousGamepadButtons = dialogButtons;
+            _previousStickDirection = dialogVertical;
+            _previousHorizontalDirection = dialogHorizontal;
             return;
         }
 
