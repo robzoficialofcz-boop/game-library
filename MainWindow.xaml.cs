@@ -107,6 +107,48 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void ChangeCover_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: Game game }) return;
+
+        var dialog = new OpenFileDialog
+        {
+            Title = $"Escolha a capa de {game.Name}",
+            Filter = "Imagens (*.png;*.jpg;*.jpeg;*.webp)|*.png;*.jpg;*.jpeg;*.webp|Todos os arquivos (*.*)|*.*",
+            CheckFileExists = true,
+            Multiselect = false
+        };
+        if (dialog.ShowDialog(this) != true) return;
+
+        try
+        {
+            var extension = Path.GetExtension(dialog.FileName).ToLowerInvariant();
+            if (extension is not (".png" or ".jpg" or ".jpeg" or ".webp"))
+            {
+                MessageBox.Show(this, "Formato não suportado. Escolha PNG, JPG, JPEG ou WEBP.",
+                    "Capa inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            Directory.CreateDirectory(_storage.CoversFolder);
+            var destination = Path.Combine(_storage.CoversFolder, $"{game.Id:N}_{Guid.NewGuid():N}{extension}");
+            await using (var source = new FileStream(dialog.FileName, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, true))
+            await using (var target = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, true))
+            {
+                await source.CopyToAsync(target);
+            }
+
+            game.CoverPath = destination;
+            await PersistSafelyAsync();
+            StatusText.Text = $"Capa atualizada: {game.Name}";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show(this, $"Não foi possível copiar a imagem.\n{ex.Message}",
+                "Erro ao trocar capa", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private async void RemoveGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: Game game }) return;
