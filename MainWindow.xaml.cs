@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.IO;
 using IOPath = System.IO.Path;
 using System.Linq;
@@ -22,6 +23,11 @@ namespace GameLibrary;
 
 public partial class MainWindow : Window
 {
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     public ObservableCollection<Game> Games { get; } = new();
     private readonly GameStorageService _storage = new();
     private readonly GameLauncherService _launcher = new();
@@ -569,6 +575,9 @@ public partial class MainWindow : Window
             StatusText.Text = $"Monitorando: {game.Name}";
             _ = PersistSafelyAsync();
 
+            // Give the launched game's window foreground priority before minimizing the library.
+            await BringGameToForegroundAsync(_activeProcess);
+
             // Keep the library running in the background while the game is open.
             _windowStateBeforeGame = WindowState;
             _minimizedForGame = true;
@@ -577,6 +586,37 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, "Erro ao iniciar jogo", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private static async Task BringGameToForegroundAsync(Process process)
+    {
+        // Some games create their main window a moment after Process.Start returns.
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            try
+            {
+                if (process.HasExited) return;
+
+                process.Refresh();
+                var handle = process.MainWindowHandle;
+                if (handle != IntPtr.Zero)
+                {
+                    ShowWindow(handle, 9); // SW_RESTORE
+                    SetForegroundWindow(handle);
+                    return;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return;
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                return;
+            }
+
+            await Task.Delay(100);
         }
     }
 
