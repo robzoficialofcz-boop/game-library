@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 using GameLibrary.Models;
 using GameLibrary.Services;
@@ -21,6 +22,11 @@ public partial class MainWindow : Window
     private readonly GameLauncherService _launcher = new();
     private readonly CoverService _covers = new();
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly DispatcherTimer _controllerTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private readonly GamepadService _gamepad = new();
+    private ushort _previousGamepadButtons;
+    private int _previousStickDirection;
+    private bool _controllerConnected;
     private readonly SemaphoreSlim _saveLock = new(1, 1);
     private Process? _activeProcess;
     private Game? _activeGame;
@@ -35,6 +41,8 @@ public partial class MainWindow : Window
         Loaded += OnLoaded;
         Closing += OnClosing;
         _timer.Tick += OnTimerTick;
+        _controllerTimer.Tick += OnControllerTimerTick;
+        _controllerTimer.Start();
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -50,6 +58,7 @@ public partial class MainWindow : Window
             UpdateStatistics();
             ApplySearch();
             StatusText.Text = $"Biblioteca local carregada: {Games.Count} jogo(s).";
+            Dispatcher.BeginInvoke(() => MoveFocus(new TraversalRequest(FocusNavigationDirection.First)));
         }
         catch (Exception ex)
         {
@@ -166,6 +175,50 @@ public partial class MainWindow : Window
         UpdateStatistics();
         ApplySearch();
         StatusText.Text = $"Jogo removido: {game.Name}";
+    }
+
+    private void OnControllerTimerTick(object? sender, EventArgs e)
+    {
+        if (!_gamepad.TryGetState(out var buttons, out var stickX, out var stickY))
+        {
+            if (_controllerConnected) ControllerStatusText.Text = "CONTROLE: desconectado";
+            _controllerConnected = false;
+            _previousGamepadButtons = 0;
+            _previousStickDirection = 0;
+            return;
+        }
+
+        if (!_controllerConnected) ControllerStatusText.Text = "CONTROLE XINPUT: conectado  •  A: selecionar  B: voltar  •  direcional: navegar";
+        _controllerConnected = true;
+
+        const ushort dpadMask = 0x000F;
+        const ushort buttonA = 0x1000;
+        const ushort buttonB = 0x2000;
+        var dpad = (ushort)(buttons & dpadMask);
+        var direction = (dpad & 0x0005) != 0 ? -1 : (dpad & 0x000A) != 0 ? 1 :
+            stickY > 16000 || stickX > 16000 ? 1 : stickY < -16000 || stickX < -16000 ? -1 : 0;
+        var dpadPressed = (dpad & ~_previousGamepadButtons) != 0;
+        if (direction != 0 && (_previousStickDirection == 0 || dpadPressed)) NavigateFocus(direction);
+        if ((buttons & buttonA) != 0 && (_previousGamepadButtons & buttonA) == 0) ActivateFocusedControl();
+        if ((buttons & buttonB) != 0 && (_previousGamepadButtons & buttonB) == 0)
+        {
+            if (Keyboard.FocusedElement is TextBox) Keyboard.ClearFocus();
+            else NavigateFocus(-1);
+        }
+        _previousGamepadButtons = buttons;
+        _previousStickDirection = direction;
+    }
+
+    private void NavigateFocus(int direction)
+    {
+        var focused = Keyboard.FocusedElement as UIElement ?? this;
+        focused.MoveFocus(new TraversalRequest(direction > 0 ? FocusNavigationDirection.Next : FocusNavigationDirection.Previous));
+    }
+
+    private static void ActivateFocusedControl()
+    {
+        if (Keyboard.FocusedElement is Button button && button.IsEnabled)
+            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => ApplySearch();
@@ -290,6 +343,7 @@ public partial class MainWindow : Window
         if (_isClosing) return;
         _isClosing = true;
         _timer.Stop();
+        _controllerTimer.Stop();
 
         if (_session is not null)
         {
