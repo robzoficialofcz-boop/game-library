@@ -567,10 +567,6 @@ public partial class MainWindow : Window
     private void UpdateFeaturedGame(Game? game)
     {
         _selectedGame = game;
-        HeroTitle.Text = game?.Name ?? "Sua biblioteca está vazia";
-        HeroPlaytime.Text = game is null ? "Adicione um jogo para começar" : game.PlaytimeText;
-        HeroPath.Text = game?.ExecutablePath ?? "Seus jogos aparecerão aqui.";
-        HeroPlayButton.IsEnabled = game is not null;
         HeroCover.Source = null;
 
         if (!string.IsNullOrWhiteSpace(game?.CoverPath) && File.Exists(game.CoverPath))
@@ -587,18 +583,6 @@ public partial class MainWindow : Window
             }
             catch (Exception) { HeroCover.Source = null; }
         }
-    }
-
-    private void PlayFeatured_Click(object sender, RoutedEventArgs e)
-    {
-        if (_selectedGame is null) return;
-        PlayGame_Click(new Button { Tag = _selectedGame }, e);
-    }
-
-    private void ChangeFeaturedCover_Click(object sender, RoutedEventArgs e)
-    {
-        if (_selectedGame is null) return;
-        ChangeCover_Click(new Button { Tag = _selectedGame }, e);
     }
 
     private void FocusFirstGameAction_Click(object sender, RoutedEventArgs e) => FocusFirstGameAction();
