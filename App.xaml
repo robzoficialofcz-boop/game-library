@@ -3,38 +3,79 @@
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  StartupUri="MainWindow.xaml">
  <Application.Resources>
-  <SolidColorBrush x:Key="WindowBrush" Color="#0D0F14"/>
-  <SolidColorBrush x:Key="SidebarBrush" Color="#11141B"/>
-  <SolidColorBrush x:Key="AccentBrush" Color="#8B5CF6"/>
+  <SolidColorBrush x:Key="WindowBrush" Color="#0B0D13"/>
+  <SolidColorBrush x:Key="SidebarBrush" Color="#10131C"/>
+  <SolidColorBrush x:Key="AccentBrush" Color="#9875F5"/>
+  <SolidColorBrush x:Key="SurfaceBrush" Color="#151925"/>
+  <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#272D3B"/>
   <Style x:Key="NavButton" TargetType="Button">
-   <Setter Property="Foreground" Value="#AAB0BF"/><Setter Property="Background" Value="Transparent"/>
-   <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="14,12"/>
-   <Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Cursor" Value="Hand"/>
-  
-   <Style.Triggers>
-    <Trigger Property="IsKeyboardFocused" Value="True">
-     <Setter Property="BorderBrush" Value="White"/>
-     <Setter Property="BorderThickness" Value="2"/>
-     <Setter Property="Effect">
-      <Setter.Value><DropShadowEffect Color="White" BlurRadius="16" ShadowDepth="0" Opacity="0.85"/></Setter.Value>
-     </Setter>
-    </Trigger>
-   </Style.Triggers>
+   <Setter Property="Foreground" Value="#A5ADBE"/>
+   <Setter Property="Background" Value="Transparent"/>
+   <Setter Property="BorderBrush" Value="Transparent"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="Padding" Value="15,13"/>
+   <Setter Property="Margin" Value="0,3,0,3"/>
+   <Setter Property="HorizontalContentAlignment" Value="Left"/>
+   <Setter Property="FontSize" Value="12"/>
+   <Setter Property="FontWeight" Value="SemiBold"/>
+   <Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="Button">
+      <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9" Padding="{TemplateBinding Padding}">
+       <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+      </Border>
+      <ControlTemplate.Triggers>
+       <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="NavBorder" Property="Background" Value="#1D2230"/>
+        <Setter Property="Foreground" Value="#F5F3FF"/>
+       </Trigger>
+       <Trigger Property="IsKeyboardFocused" Value="True">
+        <Setter TargetName="NavBorder" Property="BorderBrush" Value="#FFFFFF"/>
+        <Setter TargetName="NavBorder" Property="Background" Value="#24283A"/>
+        <Setter Property="Effect">
+         <Setter.Value><DropShadowEffect Color="#FFFFFF" BlurRadius="13" ShadowDepth="0" Opacity="0.55"/></Setter.Value>
+        </Setter>
+       </Trigger>
+      </ControlTemplate.Triggers>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
   </Style>
   <Style x:Key="PrimaryButton" TargetType="Button">
-   <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="#8057E8"/>
-   <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="15,10"/>
-   <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/>
-  
-   <Style.Triggers>
-    <Trigger Property="IsKeyboardFocused" Value="True">
-     <Setter Property="BorderBrush" Value="White"/>
-     <Setter Property="BorderThickness" Value="2"/>
-     <Setter Property="Effect">
-      <Setter.Value><DropShadowEffect Color="White" BlurRadius="16" ShadowDepth="0" Opacity="0.85"/></Setter.Value>
-     </Setter>
-    </Trigger>
-   </Style.Triggers>
+   <Setter Property="Foreground" Value="White"/>
+   <Setter Property="Background" Value="#805BE8"/>
+   <Setter Property="BorderBrush" Value="#A88BFF"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="Padding" Value="17,11"/>
+   <Setter Property="FontSize" Value="10"/>
+   <Setter Property="FontWeight" Value="Bold"/>
+   <Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="Button">
+      <Border x:Name="PrimaryBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+       <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+      <ControlTemplate.Triggers>
+       <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="PrimaryBorder" Property="Background" Value="#9675F5"/>
+        <Setter TargetName="PrimaryBorder" Property="BorderBrush" Value="#C6B4FF"/>
+       </Trigger>
+       <Trigger Property="IsKeyboardFocused" Value="True">
+        <Setter TargetName="PrimaryBorder" Property="BorderBrush" Value="White"/>
+        <Setter TargetName="PrimaryBorder" Property="BorderThickness" Value="2"/>
+        <Setter Property="Effect">
+         <Setter.Value><DropShadowEffect Color="White" BlurRadius="15" ShadowDepth="0" Opacity="0.75"/></Setter.Value>
+        </Setter>
+       </Trigger>
+       <Trigger Property="IsEnabled" Value="False">
+        <Setter TargetName="PrimaryBorder" Property="Opacity" Value="0.4"/>
+       </Trigger>
+      </ControlTemplate.Triggers>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
   </Style>
  </Application.Resources>
 </Application>
