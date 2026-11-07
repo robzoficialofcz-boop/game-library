@@ -93,7 +93,7 @@ public partial class MainWindow : Window
         {
             var path = await _covers.DownloadAsync(game.Name, _storage.CoversFolder);
             if (path is null) return;
-            if (!Games.Contains(game))
+            if (!Games.Contains(game) || !string.IsNullOrWhiteSpace(game.CoverPath))
             {
                 try { File.Delete(path); } catch (IOException) { }
                 return;
