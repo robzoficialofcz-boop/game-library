@@ -131,6 +131,9 @@
       <Button Content="▶  JOGAR" Tag="{Binding}" Click="PlayGame_Click"
               Background="#7956D6" BorderBrush="#9273E8" Foreground="White"
               Padding="10,9" FontSize="9"/>
+      <Button Content="REMOVER DA BIBLIOTECA" Tag="{Binding}" Click="RemoveGame_Click"
+              Margin="0,7,0,0" Background="#25202B" BorderBrush="#59404C"
+              Foreground="#E6A8B5" Padding="10,8" FontSize="8"/>
      </StackPanel>
     </Grid>
    </Border>
