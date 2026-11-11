@@ -201,7 +201,40 @@
      <Button Content="+  ADICIONAR" Style="{StaticResource PrimaryButton}" Click="AddGame_Click"/>
     </StackPanel>
    </Grid>
-   <Grid Grid.Row="1"/>
+   <Border Grid.Row="1" CornerRadius="18" BorderBrush="#51436F" BorderThickness="1" Background="#D90E121D" ClipToBounds="True">
+    <Grid>
+     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions>
+     <Border Background="#80101420">
+      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+       <GradientStop Color="#F20B0E17" Offset="0"/><GradientStop Color="#C9141724" Offset="0.68"/><GradientStop Color="#50141724" Offset="1"/>
+      </LinearGradientBrush></Border.Background>
+     </Border>
+     <StackPanel VerticalAlignment="Center" Margin="28,20,18,20">
+      <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+       <Border Background="#332C2148" BorderBrush="#7759B5" BorderThickness="1" CornerRadius="5" Padding="8,4">
+        <TextBlock Text="JOGO EM DESTAQUE" Foreground="#C6B3FF" FontSize="8" FontWeight="Bold"/>
+       </Border>
+       <TextBlock Text="  •  SUA COLEÇÃO" Foreground="#8993A6" FontSize="8" FontWeight="Bold" VerticalAlignment="Center"/>
+      </StackPanel>
+      <TextBlock x:Name="HeroTitle" Text="Sua próxima aventura começa aqui" Foreground="#FFFFFF" FontSize="25" FontWeight="Bold" TextTrimming="CharacterEllipsis" MaxWidth="610"/>
+      <TextBlock x:Name="HeroSubtitle" Text="Adicione seus jogos para montar sua biblioteca pessoal." Foreground="#B1B8C8" FontSize="10" Margin="0,8,0,18" TextWrapping="Wrap" MaxWidth="560"/>
+      <StackPanel Orientation="Horizontal">
+       <Button x:Name="HeroPlayButton" Content="▶  JOGAR AGORA" Tag="{x:Null}" Click="PlayGame_Click" Background="#805BE8" BorderBrush="#A88BFF" Padding="17,11" IsEnabled="False"/>
+       <TextBlock Text="  Escolha um jogo na coleção para atualizar o destaque" Foreground="#778197" FontSize="8" VerticalAlignment="Center" Margin="8,0,0,0"/>
+      </StackPanel>
+     </StackPanel>
+     <Border Grid.Column="1" Background="#171B29" BorderBrush="#40345F" BorderThickness="1,0,0,0" Padding="18">
+      <StackPanel VerticalAlignment="Center">
+       <TextBlock Text="GAME LIBRARY" Foreground="#A98CF8" FontSize="9" FontWeight="Bold"/>
+       <TextBlock Text="SUA CENTRAL DE JOGOS" Foreground="#F0ECFA" FontSize="13" FontWeight="Bold" Margin="0,7,0,5" TextWrapping="Wrap"/>
+       <TextBlock Text="Uma biblioteca. Todas as suas aventuras." Foreground="#929BAE" FontSize="9" TextWrapping="Wrap" LineHeight="15"/>
+       <Border Height="1" Background="#343044" Margin="0,15,0,12"/>
+       <TextBlock Text="DICA" Foreground="#BBA7FF" FontSize="8" FontWeight="Bold"/>
+       <TextBlock Text="Use o controle ou as setas para navegar pela coleção." Foreground="#929BAE" FontSize="9" TextWrapping="Wrap" LineHeight="15" Margin="0,5,0,0"/>
+      </StackPanel>
+     </Border>
+    </Grid>
+   </Border>
    <Grid Grid.Row="2" Margin="0,24,0,14">
     <StackPanel VerticalAlignment="Center">
      <TextBlock Text="SUA COLEÇÃO" Foreground="#F4F5FA" FontSize="15" FontWeight="Bold"/>
