@@ -1002,18 +1002,33 @@ public partial class MainWindow : Window
                     ToolTip = $"{game.Name}: {FormatPlaytime(game.HoursPlayed)}"
                 });
 
-                var row = new Grid
+                var row = new Button
                 {
-                    Margin = new Thickness(0, 0, 0, 15),
+                    Margin = new Thickness(0, 0, 0, 10),
+                    Padding = new Thickness(9, 8, 9, 8),
+                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                    Background = Brushes.Transparent,
+                    BorderBrush = Brushes.Transparent,
+                    BorderThickness = new Thickness(1),
+                    Foreground = Brushes.White,
                     Focusable = true,
-                    Background = Brushes.Transparent
+                    IsTabStop = true,
+                    Cursor = Cursors.Hand
                 };
-                KeyboardNavigation.SetIsTabStop(row, true);
-                row.GotKeyboardFocus += (_, _) => row.Background = new SolidColorBrush(Color.FromRgb(42, 48, 65));
-                row.LostKeyboardFocus += (_, _) => row.Background = Brushes.Transparent;
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(15) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                row.GotKeyboardFocus += (_, _) =>
+                {
+                    row.Background = new SolidColorBrush(Color.FromRgb(42, 48, 65));
+                    row.BorderBrush = new SolidColorBrush(Color.FromRgb(143, 105, 235));
+                };
+                row.LostKeyboardFocus += (_, _) =>
+                {
+                    row.Background = Brushes.Transparent;
+                    row.BorderBrush = Brushes.Transparent;
+                };
+                var rowContent = new Grid();
+                rowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(15) });
+                rowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                rowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var swatch = new Border
                 {
                     Width = 10,
@@ -1022,7 +1037,7 @@ public partial class MainWindow : Window
                     Background = new SolidColorBrush(color),
                     VerticalAlignment = VerticalAlignment.Center
                 };
-                row.Children.Add(swatch);
+                rowContent.Children.Add(swatch);
                 var name = new TextBlock
                 {
                     Text = game.Name,
@@ -1033,7 +1048,7 @@ public partial class MainWindow : Window
                     ToolTip = game.Name
                 };
                 Grid.SetColumn(name, 1);
-                row.Children.Add(name);
+                rowContent.Children.Add(name);
                 var value = new TextBlock
                 {
                     Text = $"{FormatPlaytime(game.HoursPlayed)}  ({game.HoursPlayed / total:P0})",
@@ -1043,7 +1058,8 @@ public partial class MainWindow : Window
                     VerticalAlignment = VerticalAlignment.Center
                 };
                 Grid.SetColumn(value, 2);
-                row.Children.Add(value);
+                rowContent.Children.Add(value);
+                row.Content = rowContent;
                 legend.Children.Add(row);
 
                 angle += sweep;
@@ -1098,7 +1114,13 @@ public partial class MainWindow : Window
         };
         _statisticsDialogBWasPressed = false;
         _controllerDialogWindow = window;
-        window.Loaded += (_, _) => closeButton.Focus();
+        window.Loaded += (_, _) =>
+        {
+            // Put keyboard/gamepad focus on the first statistics entry.
+            var firstEntry = GetFocusableElements(legend).FirstOrDefault(element => element.IsEnabled);
+            if (firstEntry is not null) firstEntry.Focus();
+            else closeButton.Focus();
+        };
         window.ShowDialog();
     }
 
