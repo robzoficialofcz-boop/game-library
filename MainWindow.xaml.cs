@@ -601,6 +601,13 @@ public partial class MainWindow : Window
     {
         _selectedGame = game;
         LibraryBackground.Source = null;
+        HeroTitle.Text = game?.Name ?? "Sua próxima aventura começa aqui";
+        HeroSubtitle.Text = game is null
+            ? "Adicione seus jogos para montar sua biblioteca pessoal."
+            : $"Pronto para jogar?  •  {game.PlaytimeText}";
+        HeroPlayButton.Tag = game;
+        HeroPlayButton.IsEnabled = game is not null;
+        HeroPlayButton.Content = game is null ? "▶  JOGAR AGORA" : $"▶  JOGAR {game.Name.ToUpperInvariant()}";
 
         if (!string.IsNullOrWhiteSpace(game?.CoverPath) && File.Exists(game.CoverPath))
         {
